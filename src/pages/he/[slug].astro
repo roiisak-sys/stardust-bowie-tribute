@@ -1,0 +1,13 @@
+---
+// Hebrew content pages: /he/show/, /he/events/, /he/corporate-events/, ...
+import ContentPage from '../../components/ContentPage.astro';
+import { slugs } from '../../lib/pages';
+
+export function getStaticPaths() {
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+---
+
+<ContentPage locale="he" slug={slug!} />

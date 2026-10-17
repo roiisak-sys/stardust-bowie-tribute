@@ -3,11 +3,13 @@ interface Props {
   locale: 'he' | 'en';
   label: string;
   ariaLabel: string;
+  /** Where the button goes: the same page in the other language. Default: the home pages. */
+  hrefOther?: string;
 }
-const { locale, label, ariaLabel } = Astro.props;
+const { locale, label, ariaLabel, hrefOther } = Astro.props;
 ---
 
-<button id="lang-toggle" class="label" aria-label={ariaLabel} data-locale={locale}>
+<button id="lang-toggle" class="label" aria-label={ariaLabel} data-locale={locale} data-href-other={hrefOther}>
   {label}
 </button>
 
@@ -42,8 +44,9 @@ const { locale, label, ariaLabel } = Astro.props;
 
     const currentLocale = btn.getAttribute('data-locale');
     const targetLocale = currentLocale === 'he' ? 'en' : 'he';
-    // English lives at the bare domain, Hebrew at /he/.
-    window.location.href = targetLocale === 'en' ? '/' : '/he/';
+    // English lives at the bare domain, Hebrew at /he/; content pages say
+    // exactly which page is their counterpart.
+    window.location.href = btn.dataset.hrefOther || (targetLocale === 'en' ? '/' : '/he/');
   });
 
   window.addEventListener('load', () => {

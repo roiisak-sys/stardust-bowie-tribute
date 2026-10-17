@@ -1,9 +1,14 @@
 ---
 // Fixed brand mark, mirrors LanguageToggle's fixed corner placement on the
-// opposite side. Links back to the top of the page.
+// opposite side. Links back to the top of the page (or, on content pages,
+// to the home page).
+interface Props {
+  href?: string;
+}
+const { href = '#hero' } = Astro.props;
 ---
 
-<a href="#hero" id="brand-mark" aria-label="Stardust">
+<a href={href} id="brand-mark" aria-label="Stardust">
   <img src="/assets/logo/stardust-logo-small.webp" alt="Stardust" width="360" height="112" decoding="async" />
 </a>
 

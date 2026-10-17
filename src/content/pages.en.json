@@ -1,0 +1,458 @@
+{
+  "show": {
+    "navLabel": "The show",
+    "title": "David Bowie Tribute Show | STARDUST, a live, special show",
+    "description": "A David Bowie tribute show by six musicians: live rock'n'roll with violin, sax and percussion, and the story of the man between the songs.",
+    "h1": "David Bowie Tribute Show",
+    "lead": "**STARDUST** is a David Bowie tribute show by six Israeli musicians. Live, kicking rock'n'roll with vocals, guitars, bass, drums, keyboards, saxophone, violin and percussion, and between the songs the story of Bowie and of the chapters of his life. A tribute, not an imitation.",
+    "facts": [
+      ["Line-up", "Six Israeli musicians"],
+      ["Instruments", "Vocals, guitars, bass, drums, keyboards, saxophone, violin and percussion"],
+      ["Experience", "Four years on stage, {{showCount}} documented shows in {{cityCount}} cities"],
+      ["Style", "Live, kicking rock'n'roll in special arrangements, with a story between the songs"],
+      ["Next show", "{{nextShow}}"],
+      ["Booking", "WhatsApp or phone: +972 50-984-1722"]
+    ],
+    "sections": [
+      {
+        "h2": "What is a David Bowie tribute show?",
+        "body": [
+          "A tribute show is a live performance devoted to one artist and his songs. Ours is **David Bowie**, the chameleon of rock, who reinvented himself again and again, from Ziggy Stardust to Blackstar. We do not try to be Bowie. We play his songs in our own arrangements, with the energy of a live rock band, and add violin, saxophone and percussion that give the songs another color.",
+          "Many tribute shows focus on recreating the sound or the look. We chose to focus on the man: what Bowie went through when he wrote each song, and how his inner world shaped the music."
+        ]
+      },
+      {
+        "h2": "A special show: music and story in one evening",
+        "body": [
+          "Between songs we stop and tell. About the characters Bowie created and left behind, the psychology behind the changes, and the way he read himself and the world. Each song is heard as a chapter in a story, and the audience leaves not only having heard Bowie, but understanding him.",
+          "That is what turns the night from an ordinary cover show into a **special show**: songs you know, performed live and with power, and a story you have not heard."
+        ]
+      },
+      {
+        "h2": "Who is on stage",
+        "type": "memberList"
+      },
+      {
+        "h2": "From glam to Blackstar: the journey of the show",
+        "body": [
+          "The show moves through Bowie's eras: the glam of Ziggy Stardust, the Berlin years, the pop of Let's Dance, and the experimental sound of his last years. Songs the band has performed include Starman, Moonage Daydream, Five Years, Ziggy Stardust, Heroes and Let's Dance.",
+          "You can read the background to each era in our guide [David Bowie: his life, eras and songs](/david-bowie/) and in [Ziggy Stardust: the album and the character](/ziggy-stardust/)."
+        ]
+      },
+      {
+        "h2": "Where we have played",
+        "body": [
+          "Since {{since}} we have played in {{cityCount}} cities, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba: in bars, clubs, kibbutzim and a cinematheque. {{nextShowSentence}}",
+          "See every show on the [shows page](/shows/)."
+        ]
+      },
+      {
+        "h2": "Want the show at your venue?",
+        "body": [
+          "STARDUST plays clubs, cultural halls, festivals and corporate events. Details on the [event band page](/events/) and the [corporate events page](/corporate-events/), or write to us on WhatsApp."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "q": "What is a David Bowie tribute show?",
+        "a": "A live performance devoted to his songs. STARDUST is six Israeli musicians who play Bowie's songs in their own arrangements, with violin, saxophone and percussion, and tell his story between the songs."
+      },
+      {
+        "q": "Is STARDUST a cover band?",
+        "a": "Not exactly. A cover band plays hits. STARDUST is a tribute: devoted to one artist, with our own arrangements and a story between the songs. We do not imitate Bowie, we play and tell him."
+      },
+      {
+        "q": "Who is in the band?",
+        "a": "Roi Isak (vocals and percussion), Guy Wittenberg (saxophone, violin and vocals), Gil Idan (drums), Dedi Kovach (keyboards and vocals), Ofer Pal (bass) and Ron Yona (guitars)."
+      },
+      {
+        "q": "Where has STARDUST played?",
+        "a": "Since September 2022 in {{cityCount}} cities, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba, in clubs, bars, kibbutzim and a cinematheque."
+      },
+      {
+        "q": "Where can I see the show?",
+        "a": "{{nextShowSentence}} The full list is on the shows page."
+      },
+      {
+        "q": "How do I book the show?",
+        "a": "Write on WhatsApp or call +972 50-984-1722. We will be glad to hear about the event, the venue and the audience."
+      }
+    ],
+    "related": ["events", "corporate-events", "david-bowie", "shows"]
+  },
+  "events": {
+    "navLabel": "Event band",
+    "title": "Event Band: David Bowie Tribute Show | STARDUST",
+    "description": "An event band with a special David Bowie tribute show: six musicians, live rock'n'roll, violin and sax. For cultural halls, festivals, clubs and events.",
+    "h1": "Event band: a David Bowie tribute show",
+    "lead": "Looking for an **event band** people will remember? **STARDUST** is a live band of six Israeli musicians with a special David Bowie tribute show: high-level rock'n'roll, violin and saxophone, and a story that connects the audience to the songs. Suited to cultural halls, festivals, clubs and corporate events.",
+    "facts": [
+      ["Type", "A live event band, David Bowie tribute show"],
+      ["Line-up", "Six players: vocals, guitars, bass, drums, keyboards, saxophone, violin and percussion"],
+      ["Suited to", "Cultural halls, festivals, clubs, corporate events"],
+      ["Experience", "{{showCount}} documented shows in {{cityCount}} cities since {{since}}"],
+      ["Booking", "WhatsApp or phone: +972 50-984-1722"]
+    ],
+    "sections": [
+      {
+        "h2": "What you get when you book STARDUST",
+        "bullets": [
+          "A live show with a full six-piece band, not backing tracks.",
+          "Special arrangements of Bowie's songs, with violin, saxophone and percussion.",
+          "A short story between the songs, which makes the evening a special show and not just a song list.",
+          "Experience with different audiences: clubs, bars, kibbutzim and a cinematheque.",
+          "Direct coordination with the band on the structure of the evening and the technical details."
+        ]
+      },
+      {
+        "h2": "Who this event band suits",
+        "bullets": [
+          "Cultural halls looking for a special show for a subscriber evening or a holiday night.",
+          "Festivals and city events, such as the London Festival at The Green Bear in Hod HaSharon.",
+          "Live music clubs, pubs and bars.",
+          "Company and organisation events, see [a show for a corporate event](/corporate-events/).",
+          "Other events by arrangement."
+        ]
+      },
+      {
+        "h2": "Cover band or tribute show: what is the difference",
+        "body": [
+          "A regular cover band plays hits so that people dance. A tribute show focuses on one artist. STARDUST adds a third layer: the story. Between songs we talk about Bowie, the characters he created, and how his life shaped the music.",
+          "That is why the evening works in several kinds of places. We have played both a cinematheque and clubs, and different audiences left feeling they got something you do not hear in every cover show."
+        ]
+      },
+      {
+        "h2": "Experience in the field",
+        "body": [
+          "Since {{since}} we have played {{showCount}} shows in {{cityCount}} cities, including Tel Aviv, Haifa, Jerusalem, Herzliya and Rishon LeZion. See the full list on the [shows page](/shows/), and the members on the [about page](/about/)."
+        ]
+      },
+      {
+        "h2": "How to book",
+        "steps": [
+          "Contact us on WhatsApp or by phone.",
+          "Tell us about the event, the venue and the audience.",
+          "We agree the structure of the evening and the technical details.",
+          "We arrive and perform."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "q": "How do I book STARDUST for an event?",
+        "a": "Write on WhatsApp or call +972 50-984-1722 and tell us about the event, the venue and the audience. We will agree the details together."
+      },
+      {
+        "q": "Is the show suitable for a cultural hall?",
+        "a": "Yes. We have played a cinematheque and seated venues as well as clubs and bars. The show is built from familiar songs with a story between them, so it works for an audience that sits and listens."
+      },
+      {
+        "q": "What is the difference between a tribute show and a cover band?",
+        "a": "A cover band plays hits by different artists. A tribute show is devoted to one artist. We also tell a story between the songs, about Bowie and the chapters of his life."
+      },
+      {
+        "q": "Which regions does the band play in?",
+        "a": "We have played in the north, the centre and Jerusalem. We would be glad to hear about an event anywhere in Israel."
+      },
+      {
+        "q": "Can I see the show before booking?",
+        "a": "Yes. There is a video of the show on the home page, and you can come to an open show, see the [shows page](/shows/)."
+      }
+    ],
+    "related": ["corporate-events", "show", "shows", "about"]
+  },
+  "corporate-events": {
+    "navLabel": "Corporate events",
+    "title": "Corporate Event Show: David Bowie Tribute | STARDUST",
+    "description": "A special show for your company event: STARDUST, a live six-piece band with a David Bowie tribute. For staff evenings, year-end, conferences and launches.",
+    "h1": "A show for a corporate event: a David Bowie tribute",
+    "lead": "A good company event needs a moment people talk about afterwards. **STARDUST** brings companies and organisations a **special show** by a live band: six musicians, high-level rock'n'roll to the songs of David Bowie, and a story the audience connects to, about a man who reinvented himself again and again.",
+    "facts": [
+      ["Type", "A live band show, David Bowie tribute"],
+      ["Line-up", "Six Israeli musicians"],
+      ["Suited to", "Staff evenings, year-end events, team days, conferences, launches and client events"],
+      ["Experience", "{{showCount}} documented shows in {{cityCount}} cities since {{since}}"],
+      ["Booking", "WhatsApp or phone: +972 50-984-1722"]
+    ],
+    "sections": [
+      {
+        "h2": "Why a David Bowie tribute works at a corporate event",
+        "bullets": [
+          "The songs are known across generations: people who grew up on Bowie and people who know him from films, ads and radio.",
+          "The energy of a live rock band lifts the event instead of playing in the background.",
+          "A story that fits an organisation: Bowie was an artist of renewal and change, themes close to every company.",
+          "A show people talk about afterwards, because it has both music and something to learn and feel."
+        ]
+      },
+      {
+        "h2": "Which corporate events it suits",
+        "bullets": [
+          "A staff evening or team event.",
+          "A year-end event.",
+          "Conferences and study days, as an evening show.",
+          "Launches and client events.",
+          "Organisation, municipality or institution events."
+        ]
+      },
+      {
+        "h2": "A special show tailored to your event",
+        "body": [
+          "You tell us about the organisation, the audience and the theme of the evening, and we build the show together: how to weave in the story between songs, and which part of Bowie's journey to emphasise. You coordinate directly with the band members."
+        ]
+      },
+      {
+        "h2": "Why STARDUST",
+        "body": [
+          "Since {{since}} we have played {{showCount}} shows in {{cityCount}} cities. The members come from well-known bands and projects in Israel, including Susita, Portrait, Alila, King George, Eggroll and The Paranoids. Meet them all on the [about page](/about/)."
+        ]
+      },
+      {
+        "h2": "How to book a show for a corporate event",
+        "steps": [
+          "Contact us on WhatsApp or by phone.",
+          "Tell us about the event: date, place, audience size and theme.",
+          "We agree the structure of the evening and the technical details.",
+          "The band arrives and performs."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "q": "How do I book a show for a corporate event?",
+        "a": "Write on WhatsApp or call +972 50-984-1722 and tell us the date, place, audience size and theme of the event."
+      },
+      {
+        "q": "Can the show be adapted to the theme of the event?",
+        "a": "Yes, we would be glad to hear about the theme and build the evening with you, including the place of the story between the songs."
+      },
+      {
+        "q": "What makes STARDUST different from an ordinary cover show for a company event?",
+        "a": "It is a tribute to one artist, with our own arrangements, violin, saxophone and percussion, and a story between the songs. Bowie was an artist of renewal, which speaks to organisations."
+      },
+      {
+        "q": "Has the band played to different audiences?",
+        "a": "Yes. We have played clubs, bars, kibbutzim and a cinematheque, in the north, the centre and Jerusalem."
+      }
+    ],
+    "related": ["events", "show", "about", "shows"]
+  },
+  "david-bowie": {
+    "navLabel": "David Bowie",
+    "title": "David Bowie: His Life, Eras and Songs | STARDUST",
+    "description": "Who was David Bowie? His life, the characters he created, the eras from Ziggy Stardust to Blackstar, and the songs and albums worth knowing.",
+    "h1": "David Bowie: who he was and the songs to know",
+    "lead": "**David Bowie** was born David Robert Jones on 8 January 1947 in London and died on 10 January 2016, two days after his 69th birthday and the release of his last album, Blackstar. A singer, songwriter and actor, he was among the most influential artists in rock, above all for his ability to reinvent himself. STARDUST is a tribute show to him.",
+    "facts": [
+      ["Full name", "David Robert Jones"],
+      ["Born", "8 January 1947, London"],
+      ["Died", "10 January 2016, New York"],
+      ["Last album", "Blackstar, 2016"],
+      ["Best-known characters", "Ziggy Stardust, Aladdin Sane, the Thin White Duke"]
+    ],
+    "sections": [
+      {
+        "h2": "David Bowie in brief",
+        "body": [
+          "Bowie started in the 1960s, broke through with Space Oddity in 1969, and for five decades changed his sound, look and persona again and again. He is known as the chameleon of rock, because every period of his career looked and sounded different.",
+          "The main facts of his life are also in the [Wikipedia entry](https://en.wikipedia.org/wiki/David_Bowie) and on the official site [davidbowie.com](https://www.davidbowie.com)."
+        ]
+      },
+      {
+        "h2": "The eras and albums of David Bowie",
+        "type": "table",
+        "headers": ["Era", "Years", "Album or song to know"],
+        "rows": [
+          ["Early years", "1969-1971", "Space Oddity, Hunky Dory (Life on Mars?)"],
+          ["Ziggy Stardust", "1972-1973", "The Rise and Fall of Ziggy Stardust, Starman, Moonage Daydream"],
+          ["Aladdin Sane", "1973", "Aladdin Sane"],
+          ["American soul and funk", "1974-1976", "Diamond Dogs, Young Americans (Fame), Station to Station"],
+          ["The Berlin years", "1977-1979", "Low, Heroes, Lodger"],
+          ["The 1980s", "1980-1983", "Scary Monsters (Ashes to Ashes), Let's Dance, Modern Love, China Girl"],
+          ["The 1990s and 2000s", "1993-2003", "Earthling, Heathen, Reality"],
+          ["The last years", "2013-2016", "The Next Day, Blackstar"]
+        ]
+      },
+      {
+        "h2": "The story behind the songs",
+        "body": [
+          "Bowie was never just music. He built characters, left them and moved on. At STARDUST we tell that story between the songs: how Bowie's inner world shaped the sound and the characters, and how he read himself and the world.",
+          "To hear it live, see the [David Bowie tribute show](/show/), and the [Ziggy Stardust guide](/ziggy-stardust/)."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "q": "When was David Bowie born and when did he die?",
+        "a": "David Bowie was born on 8 January 1947 in London and died on 10 January 2016 in New York, two days after the release of his last album, Blackstar."
+      },
+      {
+        "q": "What are David Bowie's most important albums?",
+        "a": "Among the central albums: Hunky Dory, The Rise and Fall of Ziggy Stardust and the Spiders from Mars, Aladdin Sane, Station to Station, Low, Heroes, Scary Monsters, Let's Dance and Blackstar."
+      },
+      {
+        "q": "Who is Ziggy Stardust?",
+        "a": "Ziggy Stardust is a character, a rock star from another planet, that Bowie created for his 1972 album. [Read more on the Ziggy Stardust page](/ziggy-stardust/)."
+      },
+      {
+        "q": "Is there a David Bowie tribute show in Israel?",
+        "a": "Yes, STARDUST is a David Bowie tribute show by six Israeli musicians. [Details on the show page](/show/)."
+      }
+    ],
+    "related": ["ziggy-stardust", "show", "shows", "faq"]
+  },
+  "ziggy-stardust": {
+    "navLabel": "Ziggy Stardust",
+    "title": "Ziggy Stardust: David Bowie's Album, Character and Songs",
+    "description": "David Bowie's Ziggy Stardust: the story of the 1972 album, the rock star from another planet, the band behind him and the songs worth knowing.",
+    "h1": "Ziggy Stardust: the album and the character by David Bowie",
+    "lead": "**Ziggy Stardust** is the character of a rock star from another planet created by David Bowie, and the album that introduced him: The Rise and Fall of Ziggy Stardust and the Spiders from Mars, released in 1972. The album made Bowie a star, and our band took its name from the same dust.",
+    "facts": [
+      ["Album", "The Rise and Fall of Ziggy Stardust and the Spiders from Mars"],
+      ["Year", "1972"],
+      ["The band", "The Spiders from Mars: Mick Ronson, Trevor Bolder, Woody Woodmansey"],
+      ["Key songs", "Five Years, Moonage Daydream, Starman, Ziggy Stardust, Suffragette City, Rock 'n' Roll Suicide"]
+    ],
+    "sections": [
+      {
+        "h2": "Who is Ziggy Stardust",
+        "body": [
+          "Ziggy Stardust is an invented rock star who arrives on Earth to bring a message of hope and falls under the weight of fame. Bowie dressed the character in bright costumes, makeup and orange hair, and performed as him on stage for about a year and a half.",
+          "The character became a symbol of theatricality and of the freedom to choose who you are. On 3 July 1973, at the Hammersmith Odeon in London, Bowie announced Ziggy's retirement and moved on to the characters that followed."
+        ]
+      },
+      {
+        "h2": "The songs of the album",
+        "body": [
+          "The album opens with Five Years, a song about a world that ends in five years, and moves through Moonage Daydream and Starman, among the most recognised songs in Bowie's catalogue. It closes with Rock 'n' Roll Suicide.",
+          "His backing band, The Spiders from Mars, was Mick Ronson on guitar, Trevor Bolder on bass and Woody Woodmansey on drums."
+        ]
+      },
+      {
+        "h2": "Ziggy Stardust and our tribute show",
+        "body": [
+          "We named the band STARDUST because that dust, what Bowie left behind in every character he created and left, is what we try to bring to the stage: not the look, but the journey. Songs from this period are part of our show.",
+          "See the [David Bowie tribute show](/show/) and the [David Bowie guide](/david-bowie/)."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "q": "When was the Ziggy Stardust album released?",
+        "a": "The Rise and Fall of Ziggy Stardust and the Spiders from Mars was released in June 1972."
+      },
+      {
+        "q": "Who played with Bowie on Ziggy Stardust?",
+        "a": "The Spiders from Mars: Mick Ronson on guitar, Trevor Bolder on bass and Woody Woodmansey on drums."
+      },
+      {
+        "q": "Is the name STARDUST related to Ziggy Stardust?",
+        "a": "Yes. We chose the name inspired by the dust Bowie left behind in every character, Ziggy Stardust first among them."
+      }
+    ],
+    "related": ["david-bowie", "show", "shows", "faq"]
+  },
+  "shows": {
+    "navLabel": "Shows",
+    "title": "David Bowie Tribute Shows: STARDUST Live Dates",
+    "description": "STARDUST live dates, a David Bowie tribute show: the next show, and past shows in Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion and more.",
+    "h1": "David Bowie tribute shows: live dates",
+    "lead": "Every show by **STARDUST**, a David Bowie tribute show: the next one, and the shows already played in {{cityCount}} cities since {{since}}. Want us at your event? See the [event band page](/events/).",
+    "sections": [
+      { "h2": "Next show", "type": "upcoming" },
+      { "h2": "Past shows", "type": "pastTable" }
+    ],
+    "faq": [
+      {
+        "q": "When is STARDUST's next show?",
+        "a": "{{nextShowSentence}}"
+      },
+      {
+        "q": "How many shows has STARDUST played?",
+        "a": "{{showCount}} documented on this page, in {{cityCount}} cities, since {{since}}."
+      }
+    ],
+    "related": ["show", "events", "about"]
+  },
+  "about": {
+    "navLabel": "About the band",
+    "title": "About the Band: STARDUST, a David Bowie Tribute Show",
+    "description": "Meet STARDUST, a David Bowie tribute show: six Israeli musicians from bands such as Susita, Portrait, Alila and King George, four years on stage.",
+    "h1": "About the band: STARDUST",
+    "lead": "**STARDUST** is a band of six Israeli musicians united by love for the music of David Bowie. We have performed for four years, playing a tribute, not an imitation, and telling his story between the songs. The band used to perform as YADAYADAS, and changed its name to STARDUST in 2026.",
+    "sections": [
+      { "h2": "The band members", "type": "members" },
+      {
+        "h2": "The story of the band",
+        "body": [
+          "We began as a group of musicians united by a love of Bowie, who wanted to make a tribute and not an imitation: with violin, saxophone and percussion, and with a story. Since {{since}} we have played {{showCount}} shows in {{cityCount}} cities.",
+          "In 2026 we changed the name from YADAYADAS to STARDUST, because the new name says simply what we do on stage. The band and the music stayed the same."
+        ]
+      },
+      {
+        "h2": "Want to book us?",
+        "body": [
+          "Details on the [event band page](/events/) and the [corporate events page](/corporate-events/), or write to us on WhatsApp."
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "q": "Who is in the band?",
+        "a": "Roi Isak (vocals and percussion), Guy Wittenberg (saxophone, violin and vocals), Gil Idan (drums), Dedi Kovach (keyboards and vocals), Ofer Pal (bass) and Ron Yona (guitars)."
+      },
+      {
+        "q": "What is the connection between STARDUST and YADAYADAS?",
+        "a": "They are the same band. It used to perform as YADAYADAS and changed its name to STARDUST in 2026."
+      }
+    ],
+    "related": ["show", "events", "shows"]
+  },
+  "faq": {
+    "navLabel": "FAQ",
+    "title": "FAQ: STARDUST and the David Bowie Tribute Show",
+    "description": "Answers about the STARDUST David Bowie tribute show: who the band is, where it plays, and how to book for a corporate event, cultural hall or festival.",
+    "h1": "Frequently asked questions about STARDUST",
+    "lead": "Short answers about **STARDUST**, a David Bowie tribute show, about booking the band for events, and about David Bowie himself.",
+    "sections": [],
+    "faq": [
+      {
+        "q": "What is STARDUST?",
+        "a": "STARDUST is a David Bowie tribute show by six Israeli musicians: live rock'n'roll with violin, saxophone and percussion, and a story between the songs."
+      },
+      {
+        "q": "Is it a cover band?",
+        "a": "It is a tribute show. We play Bowie's songs in our own arrangements and tell his story between the songs."
+      },
+      {
+        "q": "Who is in the band?",
+        "a": "Roi Isak (vocals and percussion), Guy Wittenberg (saxophone, violin and vocals), Gil Idan (drums), Dedi Kovach (keyboards and vocals), Ofer Pal (bass) and Ron Yona (guitars)."
+      },
+      {
+        "q": "What is the next show?",
+        "a": "{{nextShowSentence}}"
+      },
+      {
+        "q": "Where has the band played?",
+        "a": "In {{cityCount}} cities since {{since}}, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba."
+      },
+      {
+        "q": "How do I book the band for an event?",
+        "a": "Write on WhatsApp or call +972 50-984-1722. Details on the [event band page](/events/)."
+      },
+      {
+        "q": "Can I book a show for a corporate event?",
+        "a": "Yes. See [a show for a corporate event](/corporate-events/)."
+      },
+      {
+        "q": "Who was David Bowie?",
+        "a": "A British singer, songwriter and actor, born in 1947 and died in 2016, who reinvented himself in every era. [The David Bowie guide](/david-bowie/)."
+      },
+      {
+        "q": "What is the connection between STARDUST and YADAYADAS?",
+        "a": "The same band, which changed its name in 2026."
+      }
+    ],
+    "related": ["show", "events", "corporate-events", "david-bowie"]
+  }
+}

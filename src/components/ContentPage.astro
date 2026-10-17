@@ -1,0 +1,633 @@
+---
+// One template for all the content pages (show, events, corporate events,
+// David Bowie, Ziggy Stardust, shows, about, FAQ). The copy comes from
+// src/content/pages.{he,en}.json, see src/lib/pages.ts.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BrandMark from './BrandMark.astro';
+import LanguageToggle from './LanguageToggle.astro';
+import FloatingWhatsApp from './FloatingWhatsApp.astro';
+import SocialIcon from './SocialIcon.astro';
+import copyEn from '../content/copy.en.json';
+import copyHe from '../content/copy.he.json';
+import members from '../content/band-members.json';
+import { imageSize } from '../lib/image-size';
+import { buildPageStructuredData } from '../lib/structured-data';
+import {
+  pageData,
+  slugs,
+  pagePath,
+  homePath,
+  inline,
+  plain,
+  pastShows,
+  upcomingShows,
+  formatDate,
+  type Locale,
+} from '../lib/pages';
+
+interface Props {
+  locale: Locale;
+  slug: string;
+}
+const { locale, slug } = Astro.props;
+const other: Locale = locale === 'he' ? 'en' : 'he';
+const page = pageData[locale][slug];
+const copy = locale === 'he' ? copyHe : copyEn;
+const site = Astro.site ?? new URL('https://stardustbowie.com');
+
+const ui =
+  locale === 'he'
+    ? {
+        home: 'סטארדאסט',
+        faq: 'שאלות ותשובות',
+        ctaHeading: 'רוצים להזמין את סטארדאסט?',
+        ctaText: 'כתבו לנו בוואטסאפ או התקשרו. נשמח לשמוע על האירוע, האולם והקהל.',
+        related: 'עוד באתר',
+        mainNav: 'ניווט ראשי',
+        breadcrumb: 'פירורי לחם',
+        tickets: 'כרטיסים',
+        details: 'לפרטי האירוע',
+        date: 'תאריך',
+        venue: 'מקום',
+        city: 'עיר',
+        noUpcoming: 'ההופעה הבאה תפורסם בקרוב.',
+        wantUs: 'רוצים אותנו אצלכם?',
+      }
+    : {
+        home: 'STARDUST',
+        faq: 'Frequently asked questions',
+        ctaHeading: 'Want to book STARDUST?',
+        ctaText: 'Write to us on WhatsApp or call. We would be glad to hear about the event, the venue and the audience.',
+        related: 'More on this site',
+        mainNav: 'Main navigation',
+        breadcrumb: 'Breadcrumb',
+        tickets: 'Get tickets',
+        details: 'View event',
+        date: 'Date',
+        venue: 'Venue',
+        city: 'City',
+        noUpcoming: 'Our next show will be announced soon.',
+        wantUs: 'Want us at yours?',
+      };
+
+const whatsappHref = `https://wa.me/${copy.contact.whatsappNumber}?text=${encodeURIComponent(copy.contact.whatsappMessage)}`;
+const telHref = `tel:+${copy.contact.whatsappNumber}`;
+
+const core = members.filter((m) => m.role === 'core');
+const memberSizes = await Promise.all(core.map((m) => imageSize(m.photo)));
+const posterSizes = await Promise.all(
+  upcomingShows.map((s) => (s.posterImage ? imageSize(s.posterImage) : Promise.resolve({ width: 0, height: 0 })))
+);
+
+const structuredData = buildPageStructuredData({ locale, site, slug, page });
+const navSlugs = ['show', 'events', 'corporate-events', 'david-bowie', 'shows', 'about', 'faq'];
+const text = (s: string) => plain(s, locale);
+---
+
+<BaseLayout
+  locale={locale}
+  title={text(page.title)}
+  description={text(page.description)}
+  pathEn={pagePath('en', slug)}
+  pathHe={pagePath('he', slug)}
+  structuredData={structuredData}
+>
+  <BrandMark href={homePath(locale)} />
+  <LanguageToggle
+    locale={locale}
+    label={copy.languageToggle.label}
+    ariaLabel={copy.languageToggle.ariaLabel}
+    hrefOther={pagePath(other, slug)}
+  />
+  <FloatingWhatsApp
+    whatsappNumber={copy.contact.whatsappNumber}
+    whatsappMessage={copy.contact.whatsappMessage}
+    ariaLabel={copy.contact.whatsappCta}
+  />
+
+  <header class="cp-top">
+    <nav aria-label={ui.mainNav} class="cp-nav">
+      <ul>
+        {navSlugs.map((s) => (
+          <li>
+            <a href={pagePath(locale, s)} aria-current={s === slug ? 'page' : undefined}>
+              {pageData[locale][s].navLabel}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </header>
+
+  <main class="cp">
+    <nav aria-label={ui.breadcrumb} class="cp__crumbs">
+      <a href={homePath(locale)}>{ui.home}</a>
+      <span aria-hidden="true">/</span>
+      <span>{page.navLabel}</span>
+    </nav>
+
+    <h1 class="cp__h1">{text(page.h1)}</h1>
+    <p class="cp__lead" set:html={inline(page.lead, locale)} />
+
+    {page.facts && (
+      <dl class="cp__facts">
+        {page.facts.map(([k, v]: [string, string]) => (
+          <div class="cp__fact">
+            <dt>{k}</dt>
+            <dd set:html={inline(v, locale)} />
+          </div>
+        ))}
+      </dl>
+    )}
+
+    {page.sections.map((sec: any) => (
+      <section class="cp__section">
+        <h2>{text(sec.h2)}</h2>
+
+        {sec.type === 'table' ? (
+          <div class="cp__table-wrap">
+            <table class="cp__table">
+              <thead>
+                <tr>
+                  {sec.headers.map((h: string) => (
+                    <th scope="col">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sec.rows.map((row: string[]) => (
+                  <tr>
+                    {row.map((cell: string) => (
+                      <td>{cell}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : sec.type === 'memberList' ? (
+          <ul class="cp__bullets">
+            {core.map((m) => (
+              <li>
+                <strong>{locale === 'he' ? m.nameHe : m.nameEn}</strong>: {locale === 'he' ? m.instrumentHe : m.instrumentEn}
+              </li>
+            ))}
+          </ul>
+        ) : sec.type === 'members' ? (
+          <div class="cp__members">
+            {core.map((m, i) => (
+              <article class="cp__member">
+                <img
+                  src={m.photo}
+                  alt={locale === 'he' ? `${m.nameHe}, ${m.instrumentHe}` : `${m.nameEn}, ${m.instrumentEn}`}
+                  width={memberSizes[i].width}
+                  height={memberSizes[i].height}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <h3>{locale === 'he' ? m.nameHe : m.nameEn}</h3>
+                <p class="cp__member-role">{locale === 'he' ? m.instrumentHe : m.instrumentEn}</p>
+                <p>{locale === 'he' ? m.bioHe : m.bioEn}</p>
+              </article>
+            ))}
+          </div>
+        ) : sec.type === 'upcoming' ? (
+          upcomingShows.length > 0 ? (
+            <div class="cp__upcoming">
+              {upcomingShows.map((s, i) => (
+                <article class="cp__show">
+                  {s.posterImage && (
+                    <img
+                      src={s.posterImage}
+                      alt={locale === 'he' ? `כרזה: ${s.venueHe}, ${s.cityHe}` : `Poster: ${s.venueEn}, ${s.cityEn}`}
+                      width={posterSizes[i].width}
+                      height={posterSizes[i].height}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
+                  <div>
+                    <p class="cp__show-date">{formatDate(s.dateISO, locale)}</p>
+                    <h3>{locale === 'he' ? s.venueHe : s.venueEn}</h3>
+                    <p>{locale === 'he' ? s.cityHe : s.cityEn}</p>
+                    <p class="cp__show-links">
+                      {s.ticketUrl && (
+                        <a class="cp__btn" href={s.ticketUrl} target="_blank" rel="noopener noreferrer">
+                          {ui.tickets}
+                        </a>
+                      )}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p>{ui.noUpcoming}</p>
+          )
+        ) : sec.type === 'pastTable' ? (
+          <div class="cp__table-wrap">
+            <table class="cp__table">
+              <thead>
+                <tr>
+                  <th scope="col">{ui.date}</th>
+                  <th scope="col">{ui.venue}</th>
+                  <th scope="col">{ui.city}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pastShows.map((s) => (
+                  <tr>
+                    <td>{formatDate(s.dateISO, locale)}</td>
+                    <td>{locale === 'he' ? s.venueHe : s.venueEn}</td>
+                    <td>{locale === 'he' ? s.cityHe : s.cityEn}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <>
+            {sec.body && sec.body.map((p: string) => <p set:html={inline(p, locale)} />)}
+            {sec.bullets && (
+              <ul class="cp__bullets">
+                {sec.bullets.map((b: string) => (
+                  <li set:html={inline(b, locale)} />
+                ))}
+              </ul>
+            )}
+            {sec.steps && (
+              <ol class="cp__steps">
+                {sec.steps.map((st: string) => (
+                  <li set:html={inline(st, locale)} />
+                ))}
+              </ol>
+            )}
+          </>
+        )}
+      </section>
+    ))}
+
+    {page.faq && page.faq.length > 0 && (
+      <section class="cp__section cp__faq">
+        <h2>{ui.faq}</h2>
+        {page.faq.map((f: { q: string; a: string }) => (
+          <div class="cp__qa">
+            <h3>{text(f.q)}</h3>
+            <p set:html={inline(f.a, locale)} />
+          </div>
+        ))}
+      </section>
+    )}
+
+    <section class="cp__cta">
+      <h2>{ui.ctaHeading}</h2>
+      <p>{ui.ctaText}</p>
+      <div class="cp__cta-buttons">
+        <a class="cp__btn" href={whatsappHref} target="_blank" rel="noopener noreferrer">{copy.contact.whatsappCta}</a>
+        <a class="cp__btn cp__btn--secondary" href={telHref}>{copy.contact.callCta} · {copy.contact.phoneDisplay}</a>
+      </div>
+    </section>
+
+    {page.related && (
+      <nav class="cp__related" aria-label={ui.related}>
+        <h2>{ui.related}</h2>
+        <ul>
+          {page.related.map((s: string) => (
+            <li>
+              <a href={pagePath(locale, s)}>{text(pageData[locale][s].h1)}</a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
+  </main>
+
+  <footer class="cp-footer">
+    <div class="cp-footer__social">
+      <a href={copy.contact.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><SocialIcon name="instagram" size={28} /></a>
+      <a href={copy.contact.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><SocialIcon name="facebook" size={28} /></a>
+    </div>
+    <p>{copy.contact.copyright}</p>
+  </footer>
+</BaseLayout>
+
+<style>
+  .cp-top {
+    padding: calc(var(--space-sm) + 44px + var(--space-xs)) var(--space-sm) 0;
+  }
+
+  .cp-nav ul {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 60rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-xs) var(--space-sm);
+  }
+
+  .cp-nav a {
+    display: inline-block;
+    padding: 0.35rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--size-label);
+    letter-spacing: 0.06em;
+    color: var(--color-off-white);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    opacity: 0.75;
+  }
+
+  .cp-nav a:hover,
+  .cp-nav a:focus-visible,
+  .cp-nav a[aria-current='page'] {
+    opacity: 1;
+    border-bottom-color: var(--color-accent-orange);
+  }
+
+  .cp {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: var(--space-md) var(--space-sm) var(--space-xl);
+    font-size: clamp(1.05rem, 1.2vw, 1.2rem);
+    line-height: 1.75;
+  }
+
+  /* set:html content (inline links and bold) is not scoped, so :global */
+  .cp :global(a) {
+    color: var(--color-accent-orange);
+    text-underline-offset: 0.2em;
+  }
+
+  .cp__crumbs {
+    display: flex;
+    gap: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: var(--size-label);
+    letter-spacing: 0.06em;
+    opacity: 0.75;
+    margin-bottom: var(--space-md);
+  }
+
+  .cp__h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(2rem, 6vw, 3.6rem);
+    line-height: 1.1;
+    margin: 0 0 var(--space-sm);
+  }
+
+  .cp__lead {
+    font-size: clamp(1.2rem, 2.2vw, 1.5rem);
+    line-height: 1.6;
+    margin: 0 0 var(--space-md);
+  }
+
+  .cp :global(strong) {
+    font-weight: 700;
+  }
+
+  .cp__facts {
+    margin: 0 0 var(--space-lg);
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid rgba(242, 237, 228, 0.25);
+    background: var(--color-charcoal);
+  }
+
+  .cp__fact {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: var(--space-sm);
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(242, 237, 228, 0.12);
+  }
+
+  .cp__fact:last-child {
+    border-bottom: 0;
+  }
+
+  .cp__fact dt {
+    font-family: var(--font-mono);
+    font-size: var(--size-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    padding-top: 0.2rem;
+  }
+
+  .cp__fact dd {
+    margin: 0;
+  }
+
+  .cp__section {
+    margin-top: var(--space-lg);
+  }
+
+  .cp__section h2,
+  .cp__cta h2,
+  .cp__related h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    line-height: 1.2;
+    margin: 0 0 var(--space-sm);
+  }
+
+  .cp__section p {
+    margin: 0 0 var(--space-sm);
+  }
+
+  .cp__bullets,
+  .cp__steps {
+    margin: 0 0 var(--space-sm);
+    padding-inline-start: 1.4rem;
+  }
+
+  .cp__bullets li,
+  .cp__steps li {
+    margin-bottom: 0.5rem;
+  }
+
+  .cp__table-wrap {
+    overflow-x: auto;
+  }
+
+  .cp__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95em;
+  }
+
+  .cp__table th,
+  .cp__table td {
+    text-align: start;
+    padding: 0.55rem 0.75rem;
+    border-bottom: 1px solid rgba(242, 237, 228, 0.15);
+    vertical-align: top;
+  }
+
+  .cp__table th {
+    font-family: var(--font-mono);
+    font-size: var(--size-label);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+
+  .cp__members {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-md);
+  }
+
+  .cp__member img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    display: block;
+    margin-bottom: var(--space-xs);
+  }
+
+  .cp__member h3,
+  .cp__show h3,
+  .cp__qa h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    margin: 0 0 0.25rem;
+  }
+
+  .cp__member-role {
+    font-family: var(--font-mono);
+    font-size: var(--size-label);
+    letter-spacing: 0.06em;
+    opacity: 0.75;
+  }
+
+  .cp__member p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .cp__upcoming {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .cp__show {
+    display: grid;
+    grid-template-columns: minmax(8rem, 12rem) 1fr;
+    gap: var(--space-md);
+    align-items: start;
+  }
+
+  .cp__show img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .cp__show-date {
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--color-accent-orange);
+    margin: 0 0 0.25rem;
+  }
+
+  .cp__qa {
+    margin-bottom: var(--space-md);
+  }
+
+  .cp__qa p {
+    margin: 0;
+  }
+
+  .cp__cta {
+    margin-top: var(--space-xl);
+    padding: var(--space-md);
+    border: 1px solid rgba(242, 237, 228, 0.25);
+    background: var(--color-charcoal);
+    text-align: center;
+  }
+
+  .cp__cta p {
+    margin: 0 0 var(--space-sm);
+  }
+
+  .cp__cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    justify-content: center;
+  }
+
+  .cp a.cp__btn {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-black);
+    background: var(--color-accent-green);
+    padding: 0.8rem 1.6rem;
+    text-decoration: none;
+  }
+
+  .cp a.cp__btn--secondary {
+    color: var(--color-off-white);
+    background: transparent;
+    border: 1px solid var(--color-off-white);
+  }
+
+  .cp__related {
+    margin-top: var(--space-lg);
+  }
+
+  .cp__related ul {
+    margin: 0;
+    padding-inline-start: 1.4rem;
+  }
+
+  .cp__related li {
+    margin-bottom: 0.4rem;
+  }
+
+  .cp-footer {
+    text-align: center;
+    padding: var(--space-md) var(--space-sm) var(--space-xl);
+    font-family: var(--font-mono);
+    font-size: var(--size-label);
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+  }
+
+  .cp-footer__social {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .cp-footer__social a {
+    color: var(--color-off-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  @media (max-width: 600px) {
+    .cp__fact {
+      grid-template-columns: 1fr;
+      gap: 0.1rem;
+    }
+
+    .cp__show {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

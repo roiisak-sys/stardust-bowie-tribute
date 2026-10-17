@@ -3,19 +3,71 @@
     "title": "סטארדאסט | מופע מחווה לדיוויד בואי, להקה חיה",
     "description": "סטארדאסט, מופע מחווה לדיוויד בואי עם שישה מוזיקאים: רוקנרול חי, כינור וסקסופון, והסיפור שמאחורי השירים. הופעות והזמנות."
   },
-  "nav": { "show": "המופע", "bowie": "בואי", "music": "מוזיקה", "band": "ההרכב", "dates": "תאריכים" },
-  "hero": { "subtitle": "סטארדאסט, מופע מחווה לדיוויד בואי", "tribute": "מחווה לדיוויד בואי", "descriptor": "מסע מוזיקלי ותרבותי חי דרך המורשת של דיוויד בואי" },
-  "question": { "heading": "מי היה דיוויד בואי?", "fragments": ["הזיקית", "החריג", "כוכב הרוק", "השחקן", "האמן", "האיש"] },
+  "nav": {
+    "show": "המופע",
+    "bowie": "בואי",
+    "music": "מוזיקה",
+    "band": "ההרכב",
+    "dates": "תאריכים"
+  },
+  "hero": {
+    "subtitle": "סטארדאסט, מופע מחווה לדיוויד בואי",
+    "tribute": "מחווה לדיוויד בואי",
+    "descriptor": "מסע מוזיקלי ותרבותי חי דרך המורשת של דיוויד בואי"
+  },
+  "question": {
+    "heading": "מי היה דיוויד בואי?",
+    "fragments": [
+      "הזיקית",
+      "החריג",
+      "כוכב הרוק",
+      "השחקן",
+      "האמן",
+      "האיש"
+    ]
+  },
   "bowies": {
     "eras": [
-      { "name": "זיגי סטארדאסט", "line": "צבע. תיאטרליות. המסכה הראשונה.", "image": "/assets/bowie/bowie-ziggy-stardust.webp" },
-      { "name": "אלאדין סיין", "line": "המסכה נסדקה.", "image": "/assets/bowie/bowie-aladdin-sane.webp" },
-      { "name": "LET'S DANCE", "line": "שנות הפופ.", "image": "/assets/bowie/bowie-lets-dance-era-portrait.webp" },
-      { "name": "על הבמה", "line": "המעיל הפך לדגל.", "image": "/assets/bowie/bowie-live-union-jack-coat.webp" },
-      { "name": "הקול", "line": "עדיין ממשיך קדימה.", "image": "/assets/bowie/bowie-live-earthling-era.webp" },
-      { "name": "הגיטרה", "line": "אף פעם לא רק זמר.", "image": "/assets/bowie/bowie-live-guitar-scarf.webp" },
-      { "name": "חי", "line": "המבצע, באמצע השיר.", "image": "/assets/bowie/bowie-live-bw-profile-mic.webp" },
-      { "name": "האיש", "line": "מאחורי כל דמות, עדיין דיוויד ג'ונס.", "image": "/assets/bowie/bowie-portrait-stark-bw.webp" }
+      {
+        "name": "זיגי סטארדאסט",
+        "line": "צבע. תיאטרליות. המסכה הראשונה.",
+        "image": "/assets/bowie/bowie-ziggy-stardust.webp"
+      },
+      {
+        "name": "אלאדין סיין",
+        "line": "המסכה נסדקה.",
+        "image": "/assets/bowie/bowie-aladdin-sane.webp"
+      },
+      {
+        "name": "LET'S DANCE",
+        "line": "שנות הפופ.",
+        "image": "/assets/bowie/bowie-lets-dance-era-portrait.webp"
+      },
+      {
+        "name": "על הבמה",
+        "line": "המעיל הפך לדגל.",
+        "image": "/assets/bowie/bowie-live-union-jack-coat.webp"
+      },
+      {
+        "name": "הקול",
+        "line": "עדיין ממשיך קדימה.",
+        "image": "/assets/bowie/bowie-live-earthling-era.webp"
+      },
+      {
+        "name": "הגיטרה",
+        "line": "אף פעם לא רק זמר.",
+        "image": "/assets/bowie/bowie-live-guitar-scarf.webp"
+      },
+      {
+        "name": "חי",
+        "line": "המבצע, באמצע השיר.",
+        "image": "/assets/bowie/bowie-live-bw-profile-mic.webp"
+      },
+      {
+        "name": "האיש",
+        "line": "מאחורי כל דמות, עדיין דיוויד ג'ונס.",
+        "image": "/assets/bowie/bowie-portrait-stark-bw.webp"
+      }
     ]
   },
   "bowieStory": {
@@ -41,7 +93,11 @@
   "pastShows": {
     "heading": "מופעים קודמים"
   },
-  "final": { "line1": "דיוויד בואי מעולם לא היה רק אדם אחד.", "line2": "גם אנחנו לא.", "cta": "בואו לראות את סטארדאסט חיים" },
+  "final": {
+    "line1": "דיוויד בואי מעולם לא היה רק אדם אחד.",
+    "line2": "גם אנחנו לא.",
+    "cta": "בואו לראות את סטארדאסט חיים"
+  },
   "contact": {
     "heading": "דברו איתנו",
     "whatsappCta": "דברו איתנו בוואטסאפ",
@@ -54,5 +110,54 @@
     "facebookUrl": "https://www.facebook.com/stardustbowie.il/",
     "youtubeUrl": "https://www.youtube.com/@yadayadasil"
   },
-  "languageToggle": { "label": "EN", "ariaLabel": "החלף שפה לאנגלית" }
+  "languageToggle": {
+    "label": "EN",
+    "ariaLabel": "החלף שפה לאנגלית"
+  },
+  "explore": {
+    "heading": "מופע מחווה לדיוויד בואי, להקה לאירועים ועוד",
+    "intro": "סטארדאסט היא להקה לאירועים עם מופע מיוחד: מחווה חיה לדיוויד בואי, בהיכלי תרבות, בפסטיבלים, במועדונים ובאירועי חברה.",
+    "items": [
+      {
+        "slug": "show",
+        "title": "מופע מחווה לדיוויד בואי",
+        "text": "מה קורה בערב של סטארדאסט, ומי על הבמה."
+      },
+      {
+        "slug": "events",
+        "title": "להקה לאירועים",
+        "text": "להיכלי תרבות, פסטיבלים ומועדונים."
+      },
+      {
+        "slug": "corporate-events",
+        "title": "מופע לאירוע חברה",
+        "text": "ערבי עובדים, סיום שנה, כנסים והשקות."
+      },
+      {
+        "slug": "david-bowie",
+        "title": "דיוויד בואי",
+        "text": "סיפור חייו, התקופות והשירים."
+      },
+      {
+        "slug": "ziggy-stardust",
+        "title": "זיגי סטארדאסט",
+        "text": "האלבום, הדמות והשירים."
+      },
+      {
+        "slug": "shows",
+        "title": "לוח הופעות",
+        "text": "ההופעה הבאה וההופעות הקודמות."
+      },
+      {
+        "slug": "about",
+        "title": "על הלהקה",
+        "text": "שישה מוזיקאים וארבע שנים על הבמה."
+      },
+      {
+        "slug": "faq",
+        "title": "שאלות ותשובות",
+        "text": "הזמנות, הופעות ודיוויד בואי."
+      }
+    ]
+  }
 }

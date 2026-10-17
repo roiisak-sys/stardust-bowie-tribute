@@ -3,19 +3,71 @@
     "title": "STARDUST | David Bowie Tribute Show from Israel",
     "description": "Stardust, a David Bowie tribute show from Israel. Six musicians, live rock'n'roll with violin, sax and percussion, and the story behind the songs."
   },
-  "nav": { "show": "Show", "bowie": "Bowie", "music": "Music", "band": "Band", "dates": "Dates" },
-  "hero": { "subtitle": "Stardust, David Bowie Tribute Show", "tribute": "DAVID BOWIE TRIBUTE", "descriptor": "A live musical and cultural journey through David Bowie's Legacy" },
-  "question": { "heading": "Who was David Bowie?", "fragments": ["THE CHAMELEON", "THE OUTSIDER", "THE ROCK STAR", "THE ACTOR", "THE ARTIST", "THE MAN"] },
+  "nav": {
+    "show": "Show",
+    "bowie": "Bowie",
+    "music": "Music",
+    "band": "Band",
+    "dates": "Dates"
+  },
+  "hero": {
+    "subtitle": "Stardust, David Bowie Tribute Show",
+    "tribute": "DAVID BOWIE TRIBUTE",
+    "descriptor": "A live musical and cultural journey through David Bowie's Legacy"
+  },
+  "question": {
+    "heading": "Who was David Bowie?",
+    "fragments": [
+      "THE CHAMELEON",
+      "THE OUTSIDER",
+      "THE ROCK STAR",
+      "THE ACTOR",
+      "THE ARTIST",
+      "THE MAN"
+    ]
+  },
   "bowies": {
     "eras": [
-      { "name": "ZIGGY STARDUST", "line": "Color. Theatricality. The first mask.", "image": "/assets/bowie/bowie-ziggy-stardust.webp" },
-      { "name": "ALADDIN SANE", "line": "The mask cracked open.", "image": "/assets/bowie/bowie-aladdin-sane.webp" },
-      { "name": "LET'S DANCE", "line": "The pop years.", "image": "/assets/bowie/bowie-lets-dance-era-portrait.webp" },
-      { "name": "ON STAGE", "line": "The coat became a flag.", "image": "/assets/bowie/bowie-live-union-jack-coat.webp" },
-      { "name": "THE VOICE", "line": "Still moving forward.", "image": "/assets/bowie/bowie-live-earthling-era.webp" },
-      { "name": "THE GUITAR", "line": "Never just a singer.", "image": "/assets/bowie/bowie-live-guitar-scarf.webp" },
-      { "name": "LIVE", "line": "The performer, mid-song.", "image": "/assets/bowie/bowie-live-bw-profile-mic.webp" },
-      { "name": "THE MAN", "line": "Behind every character, still David Jones.", "image": "/assets/bowie/bowie-portrait-stark-bw.webp" }
+      {
+        "name": "ZIGGY STARDUST",
+        "line": "Color. Theatricality. The first mask.",
+        "image": "/assets/bowie/bowie-ziggy-stardust.webp"
+      },
+      {
+        "name": "ALADDIN SANE",
+        "line": "The mask cracked open.",
+        "image": "/assets/bowie/bowie-aladdin-sane.webp"
+      },
+      {
+        "name": "LET'S DANCE",
+        "line": "The pop years.",
+        "image": "/assets/bowie/bowie-lets-dance-era-portrait.webp"
+      },
+      {
+        "name": "ON STAGE",
+        "line": "The coat became a flag.",
+        "image": "/assets/bowie/bowie-live-union-jack-coat.webp"
+      },
+      {
+        "name": "THE VOICE",
+        "line": "Still moving forward.",
+        "image": "/assets/bowie/bowie-live-earthling-era.webp"
+      },
+      {
+        "name": "THE GUITAR",
+        "line": "Never just a singer.",
+        "image": "/assets/bowie/bowie-live-guitar-scarf.webp"
+      },
+      {
+        "name": "LIVE",
+        "line": "The performer, mid-song.",
+        "image": "/assets/bowie/bowie-live-bw-profile-mic.webp"
+      },
+      {
+        "name": "THE MAN",
+        "line": "Behind every character, still David Jones.",
+        "image": "/assets/bowie/bowie-portrait-stark-bw.webp"
+      }
     ]
   },
   "bowieStory": {
@@ -41,7 +93,11 @@
   "pastShows": {
     "heading": "PAST SHOWS"
   },
-  "final": { "line1": "DAVID BOWIE WAS NEVER JUST ONE PERSON.", "line2": "NEITHER ARE WE.", "cta": "SEE STARDUST LIVE" },
+  "final": {
+    "line1": "DAVID BOWIE WAS NEVER JUST ONE PERSON.",
+    "line2": "NEITHER ARE WE.",
+    "cta": "SEE STARDUST LIVE"
+  },
   "contact": {
     "heading": "Book STARDUST",
     "whatsappCta": "Talk to us on WhatsApp",
@@ -54,5 +110,54 @@
     "facebookUrl": "https://www.facebook.com/stardustbowie.il/",
     "youtubeUrl": "https://www.youtube.com/@yadayadasil"
   },
-  "languageToggle": { "label": "HE", "ariaLabel": "Switch language to Hebrew" }
+  "languageToggle": {
+    "label": "HE",
+    "ariaLabel": "Switch language to Hebrew"
+  },
+  "explore": {
+    "heading": "David Bowie tribute show, event band and more",
+    "intro": "STARDUST is an event band with a special show: a live tribute to David Bowie, for cultural halls, festivals, clubs and corporate events.",
+    "items": [
+      {
+        "slug": "show",
+        "title": "David Bowie tribute show",
+        "text": "What an evening with STARDUST is like, and who is on stage."
+      },
+      {
+        "slug": "events",
+        "title": "Event band",
+        "text": "For cultural halls, festivals and clubs."
+      },
+      {
+        "slug": "corporate-events",
+        "title": "A show for a corporate event",
+        "text": "Staff evenings, year-end, conferences and launches."
+      },
+      {
+        "slug": "david-bowie",
+        "title": "David Bowie",
+        "text": "His life, eras and songs."
+      },
+      {
+        "slug": "ziggy-stardust",
+        "title": "Ziggy Stardust",
+        "text": "The album, the character and the songs."
+      },
+      {
+        "slug": "shows",
+        "title": "Live dates",
+        "text": "The next show and past shows."
+      },
+      {
+        "slug": "about",
+        "title": "About the band",
+        "text": "Six musicians and four years on stage."
+      },
+      {
+        "slug": "faq",
+        "title": "FAQ",
+        "text": "Booking, shows and David Bowie."
+      }
+    ]
+  }
 }

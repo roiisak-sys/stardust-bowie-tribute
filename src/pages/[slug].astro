@@ -1,0 +1,14 @@
+---
+// English content pages at the root: /show/, /events/, /corporate-events/, ...
+// (the English home page is /, the Hebrew pages live under /he/).
+import ContentPage from '../components/ContentPage.astro';
+import { slugs } from '../lib/pages';
+
+export function getStaticPaths() {
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+---
+
+<ContentPage locale="en" slug={slug!} />

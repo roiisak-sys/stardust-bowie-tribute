@@ -11,20 +11,26 @@ interface Props {
   locale: 'he' | 'en';
   title: string;
   description: string;
+  /** English and Hebrew URL paths of this page (hreflang pair + canonical). Default: the home pages. */
+  pathEn?: string;
+  pathHe?: string;
+  /** Ready-made JSON-LD graph. Default: the home page graph. */
+  structuredData?: object;
+  ogType?: string;
 }
 
-const { locale, title, description } = Astro.props;
+const { locale, title, description, pathEn = '/', pathHe = '/he/', ogType = 'website' } = Astro.props;
 const dir = locale === 'he' ? 'rtl' : 'ltr';
 const site = Astro.site ?? new URL('https://stardustbowie.com');
 // English is served at the bare domain (and also at /en/, which canonicalises
-// to it); Hebrew lives at /he/.
-const canonical = new URL(locale === 'en' ? '/' : Astro.url.pathname, site).toString();
-const englishUrl = new URL('/', site).toString();
-const hebrewUrl = new URL('/he/', site).toString();
+// to it); Hebrew lives at /he/. Content pages pass their own pair of paths.
+const canonical = new URL(locale === 'en' ? pathEn : pathHe, site).toString();
+const englishUrl = new URL(pathEn, site).toString();
+const hebrewUrl = new URL(pathHe, site).toString();
 // Link preview picture (1200x630). WhatsApp, Facebook and LinkedIn show it when the page is shared.
 const ogImage = new URL('/assets/og/stardust-og.jpg', site).toString();
 const ogImageAlt = locale === 'he' ? 'סטארדאסט, מופע מחווה לדיוויד בואי' : 'STARDUST, David Bowie Tribute Show';
-const structuredData = buildStructuredData({ locale, site, description });
+const structuredData = Astro.props.structuredData ?? buildStructuredData({ locale, site, description });
 ---
 
 <!doctype html>
@@ -40,7 +46,7 @@ const structuredData = buildStructuredData({ locale, site, description });
     <link rel="alternate" hreflang="x-default" href={englishUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="STARDUST - David Bowie Tribute" />
     <meta property="og:locale" content={locale === 'he' ? 'he_IL' : 'en_US'} />

@@ -1,0 +1,103 @@
+---
+// A block of links from the home page to the content pages. Gives visitors a
+// way in, and gives search engines internal links with descriptive anchor text.
+import { pagePath, type Locale } from '../lib/pages';
+
+interface Item {
+  slug: string;
+  title: string;
+  text: string;
+}
+interface Props {
+  locale: Locale;
+  heading: string;
+  intro: string;
+  items: Item[];
+}
+const { locale, heading, intro, items } = Astro.props;
+---
+
+<section id="explore" class="explore has-grain">
+  <h2 class="explore__heading">{heading}</h2>
+  <p class="explore__intro">{intro}</p>
+  <ul class="explore__grid">
+    {items.map((item) => (
+      <li>
+        <a class="explore__card" href={pagePath(locale, item.slug)}>
+          <span class="explore__title">{item.title}</span>
+          <span class="explore__text">{item.text}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .explore {
+    background: var(--color-black);
+    padding: var(--space-xl) var(--space-md);
+  }
+
+  .explore__heading {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--size-display-md);
+    text-align: center;
+    margin: 0 0 var(--space-sm);
+  }
+
+  .explore__intro {
+    max-width: 42rem;
+    margin: 0 auto var(--space-lg);
+    text-align: center;
+    font-size: var(--size-body);
+    line-height: 1.6;
+  }
+
+  .explore__grid {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 64rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-sm);
+  }
+
+  .explore__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    height: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid rgba(242, 237, 228, 0.25);
+    color: var(--color-off-white);
+    text-decoration: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .explore__card:hover,
+  .explore__card:focus-visible {
+    border-color: var(--color-accent-orange);
+    background: var(--color-charcoal);
+  }
+
+  .explore__title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--color-accent-orange);
+  }
+
+  .explore__text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    opacity: 0.85;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .explore__card {
+      transition: none;
+    }
+  }
+</style>
