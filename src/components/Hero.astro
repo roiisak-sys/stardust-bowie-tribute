@@ -25,29 +25,33 @@ const dustStyle = [
     <video
       class="hero__bg-video"
       data-hero-bg-video
-      poster="/assets/hero/hero-band-live.jpg"
-      autoplay
+      poster="/assets/hero/hero-band-live.webp"
       muted
       loop
       playsinline
-      preload="auto"
-    >
-      <source src="/assets/hero/hero-bg-video.mp4" type="video/mp4" />
-    </video>
+      preload="none"
+      data-video-src="/assets/hero/hero-bg-video-small.mp4"
+    ></video>
   </div>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__brand" style={dustStyle}>
     <div class="hero__dust-layer" aria-hidden="true">
-      <img class="hero__dust" src="/assets/logo/stardust-dust.webp" alt="" />
+      <img class="hero__dust" src="/assets/logo/stardust-dust.webp" alt="" width="1450" height="810" decoding="async" />
       <canvas class="hero__sparkles" data-hero-sparkles data-logo-box={JSON.stringify(layout.logoInDust)}></canvas>
     </div>
+    <!-- The H1 carries real text (the keyword phrase) next to the logo image,
+         so search engines and screen readers get a heading, not just a picture. -->
     <h1 class="hero__logo-wrap">
       <img
-        src="/assets/logo/stardust-logo.png"
-        alt={subtitle}
+        src="/assets/logo/stardust-logo.webp"
+        alt=""
+        width="1280"
+        height="399"
+        fetchpriority="high"
         class="hero__logo"
         data-hero-logo
       />
+      <span class="hero__h1-text">{subtitle}</span>
     </h1>
   </div>
   <p class="hero__tribute" data-hero-tribute>{tribute}</p>
@@ -131,6 +135,19 @@ const dustStyle = [
     display: block;
   }
 
+  /* Visually hidden, still read by search engines and screen readers. */
+  .hero__h1-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   /* Dust + sparkles: the galaxy streak and little stars from the original
      artwork, kept as their own layer BEHIND the lettering. */
   .hero__dust-layer {
@@ -142,7 +159,9 @@ const dustStyle = [
     aspect-ratio: var(--dust-ratio);
     pointer-events: none;
     opacity: 0;
-    animation: dust-drift 16s ease-in-out infinite alternate;
+    animation:
+      dust-in 1.8s ease-out 0.5s both,
+      dust-drift 16s ease-in-out infinite alternate;
   }
 
   .hero__dust {
@@ -197,10 +216,65 @@ const dustStyle = [
     margin: var(--space-sm) 0 0;
   }
 
-  .hero__logo,
-  .hero__tribute,
+  /* Entrance animations run in CSS, not JavaScript: they start on the very
+     first paint instead of waiting for the script bundle to download and run.
+     That is what makes the logo (the largest element) appear quickly, which
+     is the Largest Contentful Paint score Google measures. */
+  .hero__logo {
+    opacity: 0;
+    animation: hero-logo-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+  }
+
+  .hero__tribute {
+    opacity: 0;
+    animation: hero-line-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1s both;
+  }
+
   .hero__descriptor {
     opacity: 0;
+    animation: hero-descriptor-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 1.35s both;
+  }
+
+  @keyframes hero-logo-in {
+    from {
+      opacity: 0;
+      transform: scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes dust-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes hero-line-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes hero-descriptor-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 0.85;
+      transform: none;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -211,8 +285,6 @@ const dustStyle = [
     .hero__bg-video {
       opacity: 1;
       transform: none;
-    }
-    .hero__dust-layer {
       animation: none;
     }
     .hero__sparkles {
@@ -238,16 +310,37 @@ const dustStyle = [
     // stated preference.
     bgVideo?.pause();
   } else {
-    // autoplay/muted/loop/playsinline on the element already start
-    // playback without JS; this call just guards against browsers that
-    // silently ignore the attribute (or a prior pause from a reduced-
-    // motion toggle elsewhere) — play() on an already-playing video is a
-    // harmless no-op.
-    bgVideo?.play().catch(() => {
-      // Autoplay can still be blocked in some environments even when
-      // muted; the poster frame is a perfectly fine fallback, so there's
-      // nothing to recover here.
-    });
+    // The background clip is a 5 MB file, so it is NOT part of the first
+    // paint: the poster (a small WebP) shows immediately and the logo is the
+    // largest element on screen. The video is attached only after the page has
+    // finished loading and the browser is idle, and not at all for visitors
+    // who asked to save data or are on a slow connection. That keeps the
+    // mobile Largest Contentful Paint fast, which matters for ranking.
+    const connection = (navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }).connection;
+    const slowOrSaving =
+      !!connection && (connection.saveData === true || ['slow-2g', '2g', '3g'].includes(connection.effectiveType ?? ''));
+
+    const startVideo = () => {
+      if (!bgVideo || slowOrSaving || bgVideo.dataset.started) return;
+      const src = bgVideo.dataset.videoSrc;
+      if (!src) return;
+      bgVideo.dataset.started = 'true';
+      bgVideo.src = src;
+      bgVideo.play().catch(() => {
+        // Autoplay can be blocked even when muted; the poster frame is a
+        // perfectly fine fallback, so there is nothing to recover here.
+      });
+    };
+    const scheduleVideo = () => {
+      const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => void })
+        .requestIdleCallback;
+      if (idle) idle(startVideo, { timeout: 2500 });
+      else setTimeout(startVideo, 1200);
+    };
+    if (document.readyState === 'complete') scheduleVideo();
+    else window.addEventListener('load', scheduleVideo, { once: true });
 
     // Use fromTo() rather than from() here: the CSS baseline for these elements is
     // opacity:0 (the site's standard hidden-until-revealed pattern), and from() treats
@@ -255,16 +348,9 @@ const dustStyle = [
     // resolve to opacity:0 and leave the reveal invisible. fromTo() makes the opacity:1
     // destination explicit, matching the pattern used in Story.astro/FinalScene.astro.
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    tl.to(bgVideo, { opacity: 1, scale: 1.05, duration: 1.6, ease: 'power2.out' })
-      .fromTo('.hero__logo', { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 1.1 }, '-=1.2')
-      .fromTo('.hero__dust-layer', { opacity: 0 }, { opacity: 1, duration: 1.8, ease: 'power1.out' }, '-=0.7')
-      .fromTo('.hero__tribute', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7 }, '-=0.4')
-      .fromTo(
-        '.hero__descriptor',
-        { opacity: 0, y: 16 },
-        { opacity: 0.85, y: 0, duration: 0.6 },
-        '-=0.3'
-      );
+    // Only the background video fades in here. The logo, dust, tribute line
+    // and descriptor animate in CSS (see the keyframes above).
+    tl.to(bgVideo, { opacity: 1, scale: 1.05, duration: 1.6, ease: 'power2.out' });
 
     const sparkleCanvas = document.querySelector('[data-hero-sparkles]') as HTMLCanvasElement | null;
     if (sparkleCanvas?.dataset.logoBox) {

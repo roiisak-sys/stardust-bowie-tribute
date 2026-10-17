@@ -1,4 +1,6 @@
 ---
+import { imageSize } from '../lib/image-size';
+
 interface Member {
   id: string;
   nameHe: string;
@@ -16,18 +18,23 @@ interface Props {
   members: Member[];
 }
 const { locale, statement, members } = Astro.props;
+
+const sizes = await Promise.all(members.map((m) => imageSize(m.photo)));
 ---
 
 <section id="band" class="band has-grain">
   <p class="band__statement">{statement}</p>
 
   <div class="band__grid" data-band-grid>
-    {members.map((m) => (
+    {members.map((m, i) => (
       <div class="band__member" data-band-member>
         <img
           src={m.photo}
-          alt={locale === 'he' ? `${m.nameHe} — ${m.instrumentHe}` : `${m.nameEn} — ${m.instrumentEn}`}
+          alt={locale === 'he' ? `${m.nameHe}, ${m.instrumentHe}` : `${m.nameEn}, ${m.instrumentEn}`}
+          width={sizes[i].width}
+          height={sizes[i].height}
           loading="lazy"
+          decoding="async"
           class="band__photo"
         />
         <p class="band__name">{locale === 'he' ? m.nameHe : m.nameEn}</p>

@@ -1,4 +1,6 @@
 ---
+import { imageSize } from '../lib/image-size';
+
 interface Era {
   name: string;
   line: string;
@@ -11,12 +13,18 @@ interface Props {
   eras: Era[];
 }
 const { locale, heading, fragments, eras } = Astro.props;
+
+const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
 ---
 
 <section id="bowie-collage" class="collage has-grain">
   <img
-    src="/assets/bowie/bowie-wordmark.png"
+    src="/assets/bowie/bowie-wordmark.webp"
     alt="Bowie"
+    width="800"
+    height="800"
+    loading="lazy"
+    decoding="async"
     class="collage__wordmark"
   />
   <h2 class="collage__heading">{heading}</h2>
@@ -27,8 +35,11 @@ const { locale, heading, fragments, eras } = Astro.props;
       <div class={`collage__cell collage__cell--${i}`} data-collage-cell>
         <img
           src={era.image}
-          alt={locale === 'he' ? `דיוויד בואי — ${era.name}` : `David Bowie — ${era.name}`}
+          alt={locale === 'he' ? `דיוויד בואי, ${era.name}` : `David Bowie, ${era.name}`}
+          width={sizes[i].width}
+          height={sizes[i].height}
           loading="lazy"
+          decoding="async"
           class="collage__image"
         />
         <span class="collage__label label">{era.name}</span>

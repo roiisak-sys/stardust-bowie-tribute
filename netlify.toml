@@ -29,3 +29,21 @@
   to = "https://stardustbowie.com/:splat"
   status = 301
   force = true
+
+# Caching. Astro's built files in /_astro/ have a content hash in their name, so
+# they can be cached for a year. Everything in /assets/ (photos, logo, video) is
+# cached for a week; browsers then re-check quietly in the background.
+[[headers]]
+  for = "/_astro/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/favicon.png"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

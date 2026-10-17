@@ -16,7 +16,7 @@ describe('band-members.json', () => {
       expect(m.nameEn).toBeTruthy();
       expect(m.instrumentHe).toBeTruthy();
       expect(m.instrumentEn).toBeTruthy();
-      expect(m.photo).toMatch(/^\/assets\/band\/.+\.jpg$/);
+      expect(m.photo).toMatch(/^\/assets\/band\/.+\.webp$/);
     }
   });
 
@@ -85,7 +85,7 @@ describe('copy.he.json / copy.en.json', () => {
     for (const era of [...copyHe.bowies.eras, ...copyEn.bowies.eras] as any[]) {
       expect(era.name).toBeTruthy();
       expect(era.line).toBeTruthy();
-      expect(era.image).toMatch(/^\/assets\/bowie\/.+\.jpg$/);
+      expect(era.image).toMatch(/^\/assets\/bowie\/.+\.webp$/);
     }
   });
 });

@@ -1,4 +1,6 @@
 ---
+import { imageSize } from '../lib/image-size';
+
 export interface Show {
   id: string;
   status: 'past' | 'upcoming';
@@ -35,6 +37,9 @@ const {
 } = Astro.props;
 
 const upcoming = shows.filter((s) => s.status === 'upcoming');
+const posterSizes = await Promise.all(
+  upcoming.map((s) => (s.posterImage ? imageSize(s.posterImage) : Promise.resolve({ width: 0, height: 0 })))
+);
 const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
 function formatDate(iso: string, locale: 'he' | 'en') {
@@ -58,10 +63,18 @@ function formatDate(iso: string, locale: 'he' | 'en') {
     </div>
   ) : (
     <div class="upcoming__grid">
-      {upcoming.map((s) => (
+      {upcoming.map((s, i) => (
         <div class="upcoming__card">
           {s.posterImage ? (
-            <img src={s.posterImage} alt="" loading="lazy" class="upcoming__poster" />
+            <img
+              src={s.posterImage}
+              alt={locale === 'he' ? `כרזה: ${s.venueHe}, ${s.cityHe}` : `Poster: ${s.venueEn}, ${s.cityEn}`}
+              width={posterSizes[i].width}
+              height={posterSizes[i].height}
+              loading="lazy"
+              decoding="async"
+              class="upcoming__poster"
+            />
           ) : (
             <div class="upcoming__poster upcoming__poster--fallback" aria-hidden="true">
               <span class="upcoming__fallback-date">{formatDate(s.dateISO, locale)}</span>

@@ -1,5 +1,6 @@
 ---
 import type { Show } from './UpcomingShows.astro';
+import { imageSize } from '../lib/image-size';
 
 interface Props {
   locale: 'he' | 'en';
@@ -18,18 +19,20 @@ const past = shows.filter((s) => s.status === 'past');
 // poster artwork itself (band name, date, venue, main visual) needs to
 // stay fully visible and legible.
 const posters = [
-  'poster-bar-giyora-stardust.jpg',
-  'poster-tassa.jpg',
-  'poster-bella-ciao-eggroll-tour.jpg',
-  'poster-ba-be-bar.jpg',
-  'poster-hobbit-bar.jpg',
-  'poster-babity-valentines.jpg',
-  'poster-beit-hamarzeach.jpg',
-  'poster-bella-ciao-jul2024.jpg',
-  'poster-traklin.jpg',
-  'poster-mishmarot.jpg',
-  'poster-pub-hapara.jpg',
+  'poster-bar-giyora-stardust.webp',
+  'poster-tassa.webp',
+  'poster-bella-ciao-eggroll-tour.webp',
+  'poster-ba-be-bar.webp',
+  'poster-hobbit-bar.webp',
+  'poster-babity-valentines.webp',
+  'poster-beit-hamarzeach.webp',
+  'poster-bella-ciao-jul2024.webp',
+  'poster-traklin.webp',
+  'poster-mishmarot.webp',
+  'poster-pub-hapara.webp',
 ];
+
+const posterSizes = await Promise.all(posters.map((p) => imageSize(`/assets/posters/${p}`)));
 
 function formatDate(iso: string, locale: 'he' | 'en') {
   return new Date(iso).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', {
@@ -44,9 +47,17 @@ function formatDate(iso: string, locale: 'he' | 'en') {
   <h2 class="past__heading">{heading}</h2>
 
   <div class="past__collage" data-past-collage>
-    {posters.map((p) => (
+    {posters.map((p, i) => (
       <div class="past__poster-cell" data-past-poster>
-        <img src={`/assets/posters/${p}`} alt="" loading="lazy" class="past__poster-img" />
+        <img
+          src={`/assets/posters/${p}`}
+          alt=""
+          width={posterSizes[i].width}
+          height={posterSizes[i].height}
+          loading="lazy"
+          decoding="async"
+          class="past__poster-img"
+        />
       </div>
     ))}
   </div>

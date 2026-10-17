@@ -5,6 +5,7 @@ import '@fontsource/assistant/600.css';
 import '@fontsource/assistant/800.css';
 import '@fontsource/jetbrains-mono/500.css';
 import '../styles/tokens.css';
+import { buildStructuredData } from '../lib/structured-data';
 
 interface Props {
   locale: 'he' | 'en';
@@ -20,6 +21,10 @@ const site = Astro.site ?? new URL('https://stardustbowie.com');
 const canonical = new URL(locale === 'en' ? '/' : Astro.url.pathname, site).toString();
 const englishUrl = new URL('/', site).toString();
 const hebrewUrl = new URL('/he/', site).toString();
+// Link preview picture (1200x630). WhatsApp, Facebook and LinkedIn show it when the page is shared.
+const ogImage = new URL('/assets/og/stardust-og.jpg', site).toString();
+const ogImageAlt = locale === 'he' ? 'סטארדאסט, מופע מחווה לדיוויד בואי' : 'STARDUST, David Bowie Tribute Show';
+const structuredData = buildStructuredData({ locale, site, description });
 ---
 
 <!doctype html>
@@ -36,10 +41,20 @@ const hebrewUrl = new URL('/he/', site).toString();
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="STARDUST - David Bowie Tribute" />
+    <meta property="og:locale" content={locale === 'he' ? 'he_IL' : 'en_US'} />
+    <meta property="og:locale:alternate" content={locale === 'he' ? 'en_US' : 'he_IL'} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
     <link rel="icon" href="/favicon.png" type="image/png" />
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>
   <body>
     <slot />

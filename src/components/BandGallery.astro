@@ -1,4 +1,6 @@
 ---
+import { imageSize } from '../lib/image-size';
+
 interface Props {
   locale: 'he' | 'en';
   heading: string;
@@ -6,6 +8,17 @@ interface Props {
   introParagraph: string;
 }
 const { locale, heading, subheading, introParagraph } = Astro.props;
+
+// Order matters: the first photo is the large highlighted one.
+const order = ['05', '02', '03', '04', '01', '06', '07', '08', '09', '10', '11', '12'];
+const photos = await Promise.all(
+  order.map(async (n) => {
+    const src = `/assets/gallery/stardust-bowie-tribute-live-${n}.webp`;
+    return { src, ...(await imageSize(src)) };
+  })
+);
+const dominantAlt =
+  locale === 'he' ? 'סטארדאסט, מופע מחווה לדיוויד בואי, על הבמה' : 'Stardust, a David Bowie tribute show, live on stage';
 ---
 
 <section id="band-gallery" class="gallery has-grain">
@@ -14,47 +27,31 @@ const { locale, heading, subheading, introParagraph } = Astro.props;
   <p class="gallery__intro">{introParagraph}</p>
 
   <div class="gallery__grid" data-gallery-grid>
-    <div class="gallery__cell gallery__cell--dominant" data-gallery-cell>
-      <img
-        src="/assets/gallery/gallery-band-05.jpg"
-        alt={locale === 'he' ? 'סטארדאסט על הבמה' : 'Stardust live on stage'}
-        loading="lazy"
-        class="gallery__image"
-      />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-02.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-03.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-04.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-01.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-06.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-07.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-08.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-09.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-10.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-11.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
-    <div class="gallery__cell" data-gallery-cell>
-      <img src="/assets/gallery/gallery-band-12.jpg" alt="" loading="lazy" class="gallery__image" />
-    </div>
+    {photos.map((p, i) => (
+      <div class={i === 0 ? 'gallery__cell gallery__cell--dominant' : 'gallery__cell'} data-gallery-cell>
+        {i === 0 ? (
+          <img
+            src={p.src}
+            alt={dominantAlt}
+            width={p.width}
+            height={p.height}
+            loading="lazy"
+            decoding="async"
+            class="gallery__image"
+          />
+        ) : (
+          <img
+            src={p.src}
+            alt=""
+            width={p.width}
+            height={p.height}
+            loading="lazy"
+            decoding="async"
+            class="gallery__image"
+          />
+        )}
+      </div>
+    ))}
   </div>
 </section>
 

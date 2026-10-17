@@ -1,32 +1,32 @@
 {
   "meta": {
-    "title": "STARDUST — David Bowie Tribute Show",
-    "description": "Stardust — a David Bowie tribute show. Six Israeli musicians, kicking live rock'n'roll with violin, sax and percussion, and the story of the man behind the songs."
+    "title": "STARDUST | David Bowie Tribute Show from Israel",
+    "description": "Stardust, a David Bowie tribute show from Israel. Six musicians, live rock'n'roll with violin, sax and percussion, and the story behind the songs."
   },
   "nav": { "show": "Show", "bowie": "Bowie", "music": "Music", "band": "Band", "dates": "Dates" },
-  "hero": { "subtitle": "Stardust — David Bowie Tribute", "tribute": "DAVID BOWIE TRIBUTE", "descriptor": "A live musical and cultural journey through David Bowie's Legacy" },
+  "hero": { "subtitle": "Stardust, David Bowie Tribute Show", "tribute": "DAVID BOWIE TRIBUTE", "descriptor": "A live musical and cultural journey through David Bowie's Legacy" },
   "question": { "heading": "Who was David Bowie?", "fragments": ["THE CHAMELEON", "THE OUTSIDER", "THE ROCK STAR", "THE ACTOR", "THE ARTIST", "THE MAN"] },
   "bowies": {
     "eras": [
-      { "name": "ZIGGY STARDUST", "line": "Color. Theatricality. The first mask.", "image": "/assets/bowie/bowie-ziggy-stardust.jpg" },
-      { "name": "ALADDIN SANE", "line": "The mask cracked open.", "image": "/assets/bowie/bowie-aladdin-sane.jpg" },
-      { "name": "LET'S DANCE", "line": "The pop years.", "image": "/assets/bowie/bowie-lets-dance-era-portrait.jpg" },
-      { "name": "ON STAGE", "line": "The coat became a flag.", "image": "/assets/bowie/bowie-live-union-jack-coat.jpg" },
-      { "name": "THE VOICE", "line": "Still moving forward.", "image": "/assets/bowie/bowie-live-earthling-era.jpg" },
-      { "name": "THE GUITAR", "line": "Never just a singer.", "image": "/assets/bowie/bowie-live-guitar-scarf.jpg" },
-      { "name": "LIVE", "line": "The performer, mid-song.", "image": "/assets/bowie/bowie-live-bw-profile-mic.jpg" },
-      { "name": "THE MAN", "line": "Behind every character, still David Jones.", "image": "/assets/bowie/bowie-portrait-stark-bw.jpg" }
+      { "name": "ZIGGY STARDUST", "line": "Color. Theatricality. The first mask.", "image": "/assets/bowie/bowie-ziggy-stardust.webp" },
+      { "name": "ALADDIN SANE", "line": "The mask cracked open.", "image": "/assets/bowie/bowie-aladdin-sane.webp" },
+      { "name": "LET'S DANCE", "line": "The pop years.", "image": "/assets/bowie/bowie-lets-dance-era-portrait.webp" },
+      { "name": "ON STAGE", "line": "The coat became a flag.", "image": "/assets/bowie/bowie-live-union-jack-coat.webp" },
+      { "name": "THE VOICE", "line": "Still moving forward.", "image": "/assets/bowie/bowie-live-earthling-era.webp" },
+      { "name": "THE GUITAR", "line": "Never just a singer.", "image": "/assets/bowie/bowie-live-guitar-scarf.webp" },
+      { "name": "LIVE", "line": "The performer, mid-song.", "image": "/assets/bowie/bowie-live-bw-profile-mic.webp" },
+      { "name": "THE MAN", "line": "Behind every character, still David Jones.", "image": "/assets/bowie/bowie-portrait-stark-bw.webp" }
     ]
   },
   "bowieStory": {
-    "paragraph": "Bowie was {{1:never just music}}. Never just the characters he built and discarded. He kept {{2:crossing lines}} — between {{3:sound, image, identity}} — and became {{4:something new each time}}. We don't recite his biography. We follow it through the songs, and trace how his inner life shaped the music, the characters, {{5:the reinvention}}, again and again.",
+    "paragraph": "Bowie was {{1:never just music}}. Never just the characters he built and discarded. He kept {{2:crossing lines}}, between {{3:sound, image, identity}}, and became {{4:something new each time}}. We don't recite his biography. We follow it through the songs, and trace how his inner life shaped the music, the characters, {{5:the reinvention}}, again and again.",
     "pullQuote": "Who am I now? What happens if I become this person? When do I need to leave him behind? And who do I become next?"
   },
   "band": {
     "heading": "A TRIBUTE, NOT AN IMITATION.",
     "subheading": "THE MUSIC. THE MAN. THE STORY.",
-    "introParagraph": "Stardust is six Israeli musicians united by a deep love for David Bowie's music. Live, kicking rock'n'roll — strong vocals, guitar interplay, solos — enriched by violin, saxophone and percussion, in arrangements that hit hard on stage. But it's more than the sound: we weave the music into the story of Bowie's life, and into the way he read himself and the world around him, so every song is heard as a chapter in that story.",
-    "statement": "We're not an imitation act. This is a real tribute, made with love for the artist, for the songs, and for the person behind them. Between songs we go deeper into his psychology and his singular life story, and into how each chapter of his life found its way into the music. After four years on stage and a deep dive into his work, we want you to leave not just having heard Bowie, but understanding him — and hearing the songs differently."
+    "introParagraph": "Stardust is a David Bowie tribute show by six Israeli musicians united by a deep love for his music. Live, kicking rock'n'roll (strong vocals, guitar interplay, solos), enriched by violin, saxophone and percussion, in arrangements that hit hard on stage. But it's more than the sound: we weave the music into the story of Bowie's life, and into the way he read himself and the world around him, so every song is heard as a chapter in that story.",
+    "statement": "We're not an imitation act. This is a real tribute, made with love for the artist, for the songs, and for the person behind them. Between songs we go deeper into his psychology and his singular life story, and into how each chapter of his life found its way into the music. After four years on stage and a deep dive into his work, we want you to leave not just having heard Bowie, but understanding him, and hearing the songs differently."
   },
   "watch": {
     "heading": "WATCH THE SHOW"
