@@ -1,23 +1,15 @@
 ---
-// logo-layout.json is written by scripts/prepare-stardust-logo.mjs: where the
-// (tight-cropped) logo sits inside the larger dust frame. The dust layer is
-// positioned/sized relative to the logo box from these numbers, so the two
-// layers line up exactly like the original artwork.
-import layout from '../content/logo-layout.json';
-
+// The hero logo is an 8 second animation (a light flare sweeping through the
+// STARDUST logo, then settling) that plays once and holds on its last frame.
+// The video is black outside the logo, and it is blended onto the page with
+// `mix-blend-mode: screen`, where black becomes transparent and the glow adds
+// light to the concert footage behind it.
 interface Props {
   subtitle: string;
   tribute: string;
   descriptor: string;
 }
 const { subtitle, tribute, descriptor } = Astro.props;
-
-const dustStyle = [
-  `--dust-left:${(layout.dustLeftOfLogo * 100).toFixed(3)}%`,
-  `--dust-top:${(layout.dustTopOfLogo * 100).toFixed(3)}%`,
-  `--dust-w:${(layout.dustWidthOfLogo * 100).toFixed(3)}%`,
-  `--dust-ratio:${(1 / layout.dustAspect).toFixed(5)}`,
-].join(';');
 ---
 
 <section id="hero" class="hero has-grain">
@@ -34,23 +26,25 @@ const dustStyle = [
     ></video>
   </div>
   <div class="hero__scrim" aria-hidden="true"></div>
-  <div class="hero__brand" style={dustStyle}>
-    <div class="hero__dust-layer" aria-hidden="true">
-      <img class="hero__dust" src="/assets/logo/stardust-dust.webp" alt="" width="1450" height="810" decoding="async" />
-      <canvas class="hero__sparkles" data-hero-sparkles data-logo-box={JSON.stringify(layout.logoInDust)}></canvas>
-    </div>
-    <!-- The H1 carries real text (the keyword phrase) next to the logo image,
-         so search engines and screen readers get a heading, not just a picture. -->
+  <div class="hero__brand">
+    <video
+      class="hero__logo-anim"
+      data-hero-logo-anim
+      src="/assets/logo/stardust-logo-anim.mp4"
+      poster="/assets/logo/stardust-logo-anim-poster.webp"
+      data-final-frame="/assets/logo/stardust-logo-anim-final.webp"
+      width="960"
+      height="960"
+      muted
+      playsinline
+      autoplay
+      preload="auto"
+      aria-hidden="true"
+      tabindex="-1"
+    ></video>
+    <!-- The H1 carries the real text (the keyword phrase); the animated logo
+         above is decoration for the eye. -->
     <h1 class="hero__logo-wrap">
-      <img
-        src="/assets/logo/stardust-logo.webp"
-        alt=""
-        width="1280"
-        height="399"
-        fetchpriority="high"
-        class="hero__logo"
-        data-hero-logo
-      />
       <span class="hero__h1-text">{subtitle}</span>
     </h1>
   </div>
@@ -60,10 +54,8 @@ const dustStyle = [
 
 <noscript>
   <style is:global>
-    #hero .hero__logo,
     #hero .hero__tribute,
     #hero .hero__descriptor,
-    #hero .hero__dust-layer,
     #hero .hero__bg-video {
       opacity: 1 !important;
       transform: none !important;
@@ -111,28 +103,24 @@ const dustStyle = [
       radial-gradient(ellipse at center, transparent 0%, rgba(10, 10, 10, 0.4) 100%);
   }
 
-  /* The brand block is the logo's box; the dust layer is positioned relative
-     to it (see --dust-* vars, generated from the artwork) and may extend past
-     it — the hero clips overflow. */
+  /* The brand block is the logo's box (the logo settles at 72.8% of the square
+     animation frame (it zooms from 66% up to 79% and back during the clip) and
+     sits exactly in its centre, so the video is drawn 137.4% as wide as the
+     box and centred on it). It must NOT create its own
+     stacking context (no z-index here): the video inside blends with the
+     concert footage behind it, and a blend only reaches elements outside its
+     own stacking context. */
   .hero__brand {
     position: relative;
-    z-index: 1;
     width: min(88vw, 640px);
+    aspect-ratio: 3.37 / 1;
     margin: 0 0 var(--space-md);
     direction: ltr;
   }
 
   .hero__logo-wrap {
-    position: relative;
-    z-index: 1;
     margin: 0;
     line-height: 0;
-  }
-
-  .hero__logo {
-    width: 100%;
-    height: auto;
-    display: block;
   }
 
   /* Visually hidden, still read by search engines and screen readers. */
@@ -148,42 +136,20 @@ const dustStyle = [
     border: 0;
   }
 
-  /* Dust + sparkles: the galaxy streak and little stars from the original
-     artwork, kept as their own layer BEHIND the lettering. */
-  .hero__dust-layer {
+  /* The animated logo. Black in the video turns transparent with a screen
+     blend, so only the lettering and the light show. */
+  .hero__logo-anim {
     position: absolute;
-    z-index: 0;
-    left: var(--dust-left);
-    top: var(--dust-top);
-    width: var(--dust-w);
-    aspect-ratio: var(--dust-ratio);
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    width: 137.4%;
+    height: auto;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: screen;
     pointer-events: none;
-    opacity: 0;
-    animation:
-      dust-in 1.8s ease-out 0.5s both,
-      dust-drift 16s ease-in-out infinite alternate;
-  }
-
-  .hero__dust {
     display: block;
-    width: 100%;
-    height: 100%;
-  }
-
-  .hero__sparkles {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  @keyframes dust-drift {
-    from {
-      transform: translate3d(-0.6%, 0.4%, 0) scale(1);
-    }
-    to {
-      transform: translate3d(0.8%, -0.6%, 0) scale(1.025);
-    }
   }
 
   /* Tier 2: the identity-clarifying line. Bold and tracked, in the same
@@ -220,11 +186,7 @@ const dustStyle = [
      first paint instead of waiting for the script bundle to download and run.
      That is what makes the logo (the largest element) appear quickly, which
      is the Largest Contentful Paint score Google measures. */
-  .hero__logo {
-    opacity: 0;
-    animation: hero-logo-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
-  }
-
+  /* The logo animates itself (it is a video); the lines below fade in under it. */
   .hero__tribute {
     opacity: 0;
     animation: hero-line-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) 1s both;
@@ -233,26 +195,6 @@ const dustStyle = [
   .hero__descriptor {
     opacity: 0;
     animation: hero-descriptor-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 1.35s both;
-  }
-
-  @keyframes hero-logo-in {
-    from {
-      opacity: 0;
-      transform: scale(0.85);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  @keyframes dust-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
   }
 
   @keyframes hero-line-in {
@@ -278,17 +220,12 @@ const dustStyle = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .hero__logo,
     .hero__tribute,
     .hero__descriptor,
-    .hero__dust-layer,
     .hero__bg-video {
       opacity: 1;
       transform: none;
       animation: none;
-    }
-    .hero__sparkles {
-      display: none;
     }
     .hero__descriptor {
       opacity: 0.85;
@@ -299,9 +236,24 @@ const dustStyle = [
 <script>
   import { gsap } from 'gsap';
   import { prefersReducedMotion } from '../scripts/reduced-motion';
-  import { startSparkles, type LogoBox } from '../scripts/sparkles';
 
   const bgVideo = document.querySelector('[data-hero-bg-video]') as HTMLVideoElement | null;
+  const logoAnim = document.querySelector('[data-hero-logo-anim]') as HTMLVideoElement | null;
+
+  if (logoAnim) {
+    if (prefersReducedMotion()) {
+      // No flare for motion-sensitive visitors: hold the finished, settled
+      // frame of the logo as a still image.
+      logoAnim.pause();
+      logoAnim.removeAttribute('autoplay');
+      if (logoAnim.dataset.finalFrame) logoAnim.poster = logoAnim.dataset.finalFrame;
+    } else {
+      // Autoplay is already on (the file is only about 0.5 MB); this retries
+      // if a browser delayed it, and does nothing if it is blocked: the poster
+      // frame is the logo, so nothing is lost.
+      logoAnim.play().catch(() => {});
+    }
+  }
 
   if (prefersReducedMotion()) {
     // Motion-sensitive visitors get the static poster frame, not the
@@ -351,11 +303,6 @@ const dustStyle = [
     // Only the background video fades in here. The logo, dust, tribute line
     // and descriptor animate in CSS (see the keyframes above).
     tl.to(bgVideo, { opacity: 1, scale: 1.05, duration: 1.6, ease: 'power2.out' });
-
-    const sparkleCanvas = document.querySelector('[data-hero-sparkles]') as HTMLCanvasElement | null;
-    if (sparkleCanvas?.dataset.logoBox) {
-      startSparkles(sparkleCanvas, JSON.parse(sparkleCanvas.dataset.logoBox) as LogoBox);
-    }
 
     const supportsHoverParallax = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 

@@ -8,7 +8,7 @@
     "facts": [
       ["Line-up", "Six Israeli musicians"],
       ["Instruments", "Vocals, guitars, bass, drums, keyboards, saxophone, violin and percussion"],
-      ["Experience", "Four years on stage, {{showCount}} documented shows in {{cityCount}} cities"],
+      ["Experience", "Four years on stage, over 70 shows in towns, live music clubs, festivals and more"],
       ["Style", "Live, kicking rock'n'roll in special arrangements, with a story between the songs"],
       ["Next show", "{{nextShow}}"],
       ["Booking", "WhatsApp or phone: +972 50-984-1722"]
@@ -42,7 +42,7 @@
       {
         "h2": "Where we have played",
         "body": [
-          "Since {{since}} we have played in {{cityCount}} cities, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba: in bars, clubs, kibbutzim and a cinematheque. {{nextShowSentence}}",
+          "Since {{since}} we have played over 70 shows in towns, live music clubs, festivals and more, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba: in bars, clubs, kibbutzim and a cinematheque. {{nextShowSentence}}",
           "See every show on the [shows page](/shows/)."
         ]
       },
@@ -68,7 +68,7 @@
       },
       {
         "q": "Where has STARDUST played?",
-        "a": "Since September 2022 in {{cityCount}} cities, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba, in clubs, bars, kibbutzim and a cinematheque."
+        "a": "Over 70 shows since September 2022, in towns, live music clubs, festivals and more, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba, in clubs, bars, kibbutzim and a cinematheque."
       },
       {
         "q": "Where can I see the show?",
@@ -91,7 +91,7 @@
       ["Type", "A live event band, David Bowie tribute show"],
       ["Line-up", "Six players: vocals, guitars, bass, drums, keyboards, saxophone, violin and percussion"],
       ["Suited to", "Cultural halls, festivals, clubs, corporate events"],
-      ["Experience", "{{showCount}} documented shows in {{cityCount}} cities since {{since}}"],
+      ["Experience", "Over 70 shows in towns, live music clubs, festivals and more since {{since}}"],
       ["Booking", "WhatsApp or phone: +972 50-984-1722"]
     ],
     "sections": [
@@ -125,7 +125,7 @@
       {
         "h2": "Experience in the field",
         "body": [
-          "Since {{since}} we have played {{showCount}} shows in {{cityCount}} cities, including Tel Aviv, Haifa, Jerusalem, Herzliya and Rishon LeZion. See the full list on the [shows page](/shows/), and the members on the [about page](/about/)."
+          "Since {{since}} we have played over 70 shows in towns, live music clubs, festivals and more, including Tel Aviv, Haifa, Jerusalem, Herzliya and Rishon LeZion. See the full list on the [shows page](/shows/), and the members on the [about page](/about/)."
         ]
       },
       {
@@ -172,7 +172,7 @@
       ["Type", "A live band show, David Bowie tribute"],
       ["Line-up", "Six Israeli musicians"],
       ["Suited to", "Staff evenings, year-end events, team days, conferences, launches and client events"],
-      ["Experience", "{{showCount}} documented shows in {{cityCount}} cities since {{since}}"],
+      ["Experience", "Over 70 shows in towns, live music clubs, festivals and more since {{since}}"],
       ["Booking", "WhatsApp or phone: +972 50-984-1722"]
     ],
     "sections": [
@@ -204,7 +204,7 @@
       {
         "h2": "Why STARDUST",
         "body": [
-          "Since {{since}} we have played {{showCount}} shows in {{cityCount}} cities. The members come from well-known bands and projects in Israel, including Susita, Portrait, Alila, King George, Eggroll and The Paranoids. Meet them all on the [about page](/about/)."
+          "Since {{since}} we have played over 70 shows in towns, live music clubs, festivals and more. The members come from well-known bands and projects in Israel, including Susita, Portrait, Alila, King George, Eggroll and The Paranoids. Meet them all on the [about page](/about/)."
         ]
       },
       {
@@ -357,10 +357,10 @@
     "title": "David Bowie Tribute Shows: STARDUST Live Dates",
     "description": "STARDUST live dates, a David Bowie tribute show: the next show, and past shows in Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion and more.",
     "h1": "David Bowie tribute shows: live dates",
-    "lead": "Every show by **STARDUST**, a David Bowie tribute show: the next one, and the shows already played in {{cityCount}} cities since {{since}}. Want us at your event? See the [event band page](/events/).",
+    "lead": "Every show by **STARDUST**, a David Bowie tribute show: the next one, and over 70 shows already played in towns, live music clubs, festivals and more since {{since}}. Want us at your event? See the [event band page](/events/).",
     "sections": [
       { "h2": "Next show", "type": "upcoming" },
-      { "h2": "Past shows", "type": "pastTable" }
+      { "h2": "A selection of past shows", "type": "pastTable" }
     ],
     "faq": [
       {
@@ -369,7 +369,7 @@
       },
       {
         "q": "How many shows has STARDUST played?",
-        "a": "{{showCount}} documented on this page, in {{cityCount}} cities, since {{since}}."
+        "a": "Over 70 shows in towns, live music clubs, festivals and more since {{since}}. This page lists a selection of them."
       }
     ],
     "related": ["show", "events", "about"]
@@ -385,7 +385,7 @@
       {
         "h2": "The story of the band",
         "body": [
-          "We began as a group of musicians united by a love of Bowie, who wanted to make a tribute and not an imitation: with violin, saxophone and percussion, and with a story. Since {{since}} we have played {{showCount}} shows in {{cityCount}} cities.",
+          "We began as a group of musicians united by a love of Bowie, who wanted to make a tribute and not an imitation: with violin, saxophone and percussion, and with a story. Since {{since}} we have played over 70 shows in towns, live music clubs, festivals and more.",
           "In 2026 we changed the name from YADAYADAS to STARDUST, because the new name says simply what we do on stage. The band and the music stayed the same."
         ]
       },
@@ -434,7 +434,7 @@
       },
       {
         "q": "Where has the band played?",
-        "a": "In {{cityCount}} cities since {{since}}, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba."
+        "a": "Over 70 shows since {{since}}, in towns, live music clubs, festivals and more, including Tel Aviv, Haifa, Jerusalem, Herzliya, Rishon LeZion, Zichron Yaakov and Kfar Saba."
       },
       {
         "q": "How do I book the band for an event?",

@@ -56,6 +56,16 @@ describe('content page copy', () => {
     });
   }
 
+  it('never states an exact number of past shows, only "over 70"', () => {
+    const he = JSON.stringify(pagesHe);
+    const en = JSON.stringify(pagesEn);
+    expect(he).toContain('מעל 70');
+    expect(en).toContain('over 70');
+    expect(he + en).not.toMatch(/showCount|cityCount/);
+    expect(he).not.toMatch(/d+ (הופעות מתועדות|ערים)/);
+    expect(en).not.toMatch(/d+ (documented shows|cities)/);
+  });
+
   it('covers the Hebrew search terms the site is meant to rank for', () => {
     const all = JSON.stringify(pagesHe);
     for (const term of [

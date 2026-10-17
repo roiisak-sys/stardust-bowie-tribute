@@ -2,7 +2,9 @@
 // Ziggy Stardust, shows, about, FAQ). The copy lives in
 // src/content/pages.{he,en}.json; numbers that change (how many shows, how many
 // cities, the next show) are filled in at build time from shows.json so the
-// text can never drift out of date.
+// text can never drift out of date. Past-show totals are deliberately NOT
+// computed here: the public wording is "over 70 shows" (shows.json only lists
+// a selection), so no exact count is ever published.
 import pagesHe from '../content/pages.he.json';
 import pagesEn from '../content/pages.en.json';
 import shows from '../content/shows.json';
@@ -35,7 +37,6 @@ export const pastShows = shows.filter((s) => s.status === 'past').sort((a, b) =>
 export const upcomingShows = shows.filter((s) => s.status === 'upcoming' && s.dateISO >= today());
 
 export function stats(locale: Locale) {
-  const cities = new Set(pastShows.map((s) => s.cityEn));
   const earliest = pastShows.map((s) => s.dateISO).sort()[0];
   const [y, m] = earliest.split('-').map(Number);
   const since = locale === 'he' ? `${MONTHS_HE[m - 1]} ${y}` : `${MONTHS_EN[m - 1]} ${y}`;
@@ -55,8 +56,6 @@ export function stats(locale: Locale) {
       : 'Our next show will be announced soon.';
 
   return {
-    showCount: String(pastShows.length),
-    cityCount: String(cities.size),
     since,
     nextShow,
     nextShowSentence,

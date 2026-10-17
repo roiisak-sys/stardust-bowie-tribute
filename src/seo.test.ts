@@ -92,6 +92,19 @@ for (const p of pages) {
       for (const s of srcs) expect(s, s).toMatch(/\.webp$/);
     });
 
+    it('has the animated logo: muted inline video with poster, hidden from screen readers, files present', () => {
+      const tag = html().match(/<video[^>]*data-hero-logo-anim[^>]*>/)![0];
+      expect(tag).toContain('src="/assets/logo/stardust-logo-anim.mp4"');
+      expect(tag).toContain('poster="/assets/logo/stardust-logo-anim-poster.webp"');
+      expect(tag).toMatch(/\smuted/);
+      expect(tag).toMatch(/playsinline/);
+      expect(tag).toContain('aria-hidden="true"');
+      expect(tag).not.toMatch(/\sloop/);
+      for (const f of ['stardust-logo-anim.mp4', 'stardust-logo-anim-poster.webp', 'stardust-logo-anim-final.webp']) {
+        expect(existsSync(join(DIST, 'assets', 'logo', f)), f).toBe(true);
+      }
+    });
+
     it('does not load the background video during the first paint', () => {
       const h = html();
       expect(h).not.toMatch(/<source[^>]*hero-bg-video/);
