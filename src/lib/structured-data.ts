@@ -62,6 +62,10 @@ function eventNodes(locale: Locale, site: URL) {
   return upcomingShows.map((s) => ({
     '@type': 'MusicEvent',
     name: locale === 'he' ? `סטארדאסט, מחווה לדיוויד בואי: ${s.venueHe}` : `STARDUST, David Bowie Tribute: ${s.venueEn}`,
+    description:
+      locale === 'he'
+        ? `מופע מחווה לדיוויד בואי עם להקת סטארדאסט: שישה מוזיקאים, רוקנרול חי וסיפורו של בואי בין השירים. ${s.venueHe}, ${s.cityHe}.`
+        : `A David Bowie tribute show by the band STARDUST: six musicians, live rock and roll, and Bowie's story between the songs. ${s.venueEn}, ${s.cityEn}.`,
     startDate: s.dateISO,
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
@@ -77,6 +81,12 @@ function eventNodes(locale: Locale, site: URL) {
     image: s.posterImage ? [abs(site, s.posterImage)] : undefined,
     url: s.eventUrl || undefined,
     performer: { '@id': bandId(site) },
+    organizer: { '@id': bandId(site) },
+    // No price is published in the show data, so the offer carries only the
+    // ticket link and availability.
+    offers: s.ticketUrl
+      ? { '@type': 'Offer', url: s.ticketUrl, availability: 'https://schema.org/InStock' }
+      : undefined,
   }));
 }
 
@@ -86,7 +96,7 @@ function videoNode(locale: Locale, description: string) {
     name: locale === 'he' ? 'סטארדאסט, מופע מחווה לדיוויד בואי' : 'STARDUST, David Bowie Tribute Show',
     description,
     thumbnailUrl: `https://i.ytimg.com/vi/${YOUTUBE_ID}/hqdefault.jpg`,
-    uploadDate: '2026-08-15',
+    uploadDate: '2026-08-15T00:00:00+03:00',
     duration: 'PT1M4S',
     embedUrl: `https://www.youtube.com/embed/${YOUTUBE_ID}`,
     inLanguage: locale,
