@@ -111,13 +111,14 @@ const paragraphParts = parseEmphasis(paragraph);
   .bowie-story__paragraph {
     position: relative;
     z-index: 1;
-    max-width: 36rem;
+    max-width: 56rem;
     margin-inline: auto;
     text-align: center;
     font-family: var(--font-body);
     font-style: italic;
     font-weight: 400;
-    font-size: var(--size-display-md);
+    /* Smaller type in a wider column, so the whole paragraph fits on one screen. */
+    font-size: clamp(1.2rem, 2.3vw, 1.9rem);
     line-height: 1.5;
     margin: 0 auto;
     opacity: 0;
@@ -171,7 +172,7 @@ const paragraphParts = parseEmphasis(paragraph);
   .bowie-story__quote {
     position: relative;
     z-index: 1;
-    max-width: 36rem;
+    max-width: 56rem;
     margin: var(--space-lg) auto 0;
     text-align: center;
     opacity: 0;

@@ -154,13 +154,16 @@ function formatDate(iso: string, locale: 'he' | 'en') {
 
   .upcoming__poster {
     width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
+    /* The poster keeps its own proportions (the width/height attributes give
+       the ratio), uncropped. */
+    height: auto;
+    object-fit: contain;
     display: block;
     background: var(--color-charcoal);
   }
 
   .upcoming__poster--fallback {
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -92,8 +92,12 @@ const sizes = await Promise.all(members.map((m) => imageSize(m.photo)));
 
   .band__photo {
     width: 100%;
+    /* height: auto lets aspect-ratio win over the height attribute, so every
+       portrait is the same size whatever the source photo's proportions. */
+    height: auto;
     aspect-ratio: 4 / 5;
     object-fit: cover;
+    object-position: center 25%;
     display: block;
   }
 
