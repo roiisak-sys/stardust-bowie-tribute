@@ -58,6 +58,21 @@ function bandNode(locale: Locale, site: URL, description: string) {
   };
 }
 
+/** Ticket offer. Price, currency and sale start come from shows.json (the
+ *  ticket seller's published full price); without a ticket link there is no offer. */
+function offerFor(show: (typeof shows)[number]) {
+  const s = show as typeof show & { ticketPrice?: number; ticketCurrency?: string; ticketsOnSaleFrom?: string };
+  if (!s.ticketUrl) return undefined;
+  return {
+    '@type': 'Offer',
+    url: s.ticketUrl,
+    availability: 'https://schema.org/InStock',
+    price: s.ticketPrice,
+    priceCurrency: s.ticketPrice !== undefined ? s.ticketCurrency : undefined,
+    validFrom: s.ticketsOnSaleFrom,
+  };
+}
+
 function eventNodes(locale: Locale, site: URL) {
   return upcomingShows.map((s) => ({
     '@type': 'MusicEvent',
@@ -82,11 +97,7 @@ function eventNodes(locale: Locale, site: URL) {
     url: s.eventUrl || undefined,
     performer: { '@id': bandId(site) },
     organizer: { '@id': bandId(site) },
-    // No price is published in the show data, so the offer carries only the
-    // ticket link and availability.
-    offers: s.ticketUrl
-      ? { '@type': 'Offer', url: s.ticketUrl, availability: 'https://schema.org/InStock' }
-      : undefined,
+    offers: offerFor(s),
   }));
 }
 
