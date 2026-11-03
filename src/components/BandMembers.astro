@@ -1,5 +1,6 @@
 ---
 import { imageSize } from '../lib/image-size';
+import SwipeRow from './SwipeRow.astro';
 
 interface Member {
   id: string;
@@ -16,162 +17,338 @@ interface Props {
   locale: 'he' | 'en';
   statement: string;
   members: Member[];
+  /** Accessible name of the close button on the bio sheet (copy.ui.bandSheetClose). */
+  closeLabel: string;
 }
-const { locale, statement, members } = Astro.props;
+const { locale, statement, members, closeLabel } = Astro.props;
 
 const sizes = await Promise.all(members.map((m) => imageSize(m.photo)));
+const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
 ---
 
 <section id="band" class="band has-grain">
   <p class="band__statement">{statement}</p>
 
-  <div class="band__grid" data-band-grid>
+  <SwipeRow label={rowLabel}>
     {members.map((m, i) => (
-      <div class="band__member" data-band-member>
-        <img
-          src={m.photo}
-          alt={locale === 'he' ? `${m.nameHe}, ${m.instrumentHe}` : `${m.nameEn}, ${m.instrumentEn}`}
-          width={sizes[i].width}
-          height={sizes[i].height}
-          loading="lazy"
-          decoding="async"
-          class="band__photo"
-        />
-        <p class="band__name">{locale === 'he' ? m.nameHe : m.nameEn}</p>
-        <p class="band__instrument label">
-          {locale === 'he' ? m.instrumentHe : m.instrumentEn}
-        </p>
+      <article class="band__card" data-swipe-item data-reveal style={`--reveal-delay: ${Math.min(i, 3) * 80}ms`}>
+        <button type="button" class="band__open">
+          <img
+            src={m.photo}
+            alt=""
+            width={sizes[i].width}
+            height={sizes[i].height}
+            loading="lazy"
+            decoding="async"
+            class="band__photo"
+            data-colorize
+          />
+          <span class="band__caption">
+            <span class="band__name">{locale === 'he' ? m.nameHe : m.nameEn}</span>
+            <span class="band__instrument">{locale === 'he' ? m.instrumentHe : m.instrumentEn}</span>
+          </span>
+        </button>
         <p class="band__bio">{locale === 'he' ? m.bioHe : m.bioEn}</p>
-      </div>
+      </article>
     ))}
-  </div>
+  </SwipeRow>
 </section>
 
-<noscript>
-  <style is:global>
-    #band .band__member {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-  </style>
-</noscript>
+<dialog id="band-sheet" class="band-sheet" aria-labelledby="band-sheet-name" data-lenis-prevent>
+  <div class="band-sheet__panel" data-lenis-prevent>
+    <span class="band-sheet__grab" aria-hidden="true"></span>
+    <button type="button" class="band-sheet__close" aria-label={closeLabel} autofocus>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+    <h3 class="band-sheet__name" id="band-sheet-name"></h3>
+    <p class="band-sheet__instrument"></p>
+    <p class="band-sheet__bio"></p>
+  </div>
+</dialog>
 
 <style>
   .band {
-    background: var(--color-off-white);
-    color: var(--color-black);
-    padding: var(--space-xl) var(--space-md);
+    --swipe-item: 72%;
+    --swipe-gap: var(--space-sm);
+    background: var(--color-black);
+    color: var(--color-off-white);
+    padding-block: var(--space-xl);
+  }
+
+  /* SwipeRow sets its own gutter on .swipe, so a parent value would not reach it. */
+  .band :global(.swipe) {
+    --swipe-gutter: var(--space-md);
   }
 
   .band__statement {
-    max-width: 42rem;
+    max-inline-size: 42rem;
     margin: 0 auto var(--space-lg);
+    padding-inline: var(--space-md);
     text-align: center;
+    font-family: var(--font-body);
+    font-size: var(--size-body);
+    line-height: 1.6;
+    color: var(--color-off-white);
+  }
+
+  .band__open {
+    position: relative;
+    display: block;
+    inline-size: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: var(--color-charcoal);
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .band__open:focus-visible,
+  .band-sheet__close:focus-visible {
+    outline: 2px solid var(--color-accent-orange);
+    outline-offset: 3px;
+  }
+
+  .band__photo {
+    display: block;
+    inline-size: 100%;
+    /* height: auto lets aspect-ratio win over the height attribute, so every
+       card is the same size whatever the source photo's proportions. */
+    block-size: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    object-position: center 20%;
+  }
+
+  /* Name and instrument sit on a gradient that goes to near black, so the
+     off-white text keeps its contrast on any photo. */
+  .band__caption {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    display: block;
+    padding: 3.5rem var(--space-sm) var(--space-sm);
+    background: linear-gradient(to top, rgba(5, 5, 5, 0.96) 0%, rgba(5, 5, 5, 0.78) 45%, rgba(5, 5, 5, 0));
+  }
+
+  .band__name {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.25rem;
+    line-height: 1.15;
+    color: var(--color-off-white);
+  }
+
+  .band__instrument {
+    display: block;
+    margin-block-start: 0.25rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    line-height: 1.3;
+    color: var(--color-off-white);
+  }
+
+  /* Without JS the bio is plain text under the card; with JS it moves into the sheet
+     but stays in the DOM (the sheet copies it from here). */
+  .band__bio {
+    margin: var(--space-sm) 0 0;
+    font-family: var(--font-body);
+    font-size: var(--size-body);
+    line-height: 1.5;
+    color: var(--color-off-white);
+  }
+
+  :global(.js) .band__bio {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (min-width: 700px) {
+    .band {
+      --swipe-item: 38%;
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .band {
+      --swipe-item: 26%;
+    }
+  }
+
+  /* The bio sheet: a bottom-anchored native dialog. All the padding lives on the
+     panel, so a click whose target is the dialog itself can only be the backdrop. */
+  .band-sheet {
+    inset-block: auto 0;
+    inset-inline: 0;
+    margin: 0 auto;
+    inline-size: 100%;
+    max-inline-size: 40rem;
+    max-block-size: min(85vh, 85dvh);
+    padding: 0;
+    border: 0;
+    border-start-start-radius: 1.4rem;
+    border-start-end-radius: 1.4rem;
+    overflow: hidden;
+    background: var(--color-off-white);
+    color: var(--color-black);
+  }
+
+  .band-sheet::backdrop {
+    background: rgba(5, 5, 5, 0.7);
+  }
+
+  .band-sheet__panel {
+    position: relative;
+    max-block-size: min(85vh, 85dvh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-block: var(--space-sm) max(var(--space-md), env(safe-area-inset-bottom));
+    padding-inline: var(--space-md);
+  }
+
+  .band-sheet__grab {
+    display: block;
+    inline-size: 2.4rem;
+    block-size: 0.25rem;
+    margin: 0 auto var(--space-sm);
+    border-radius: 0.2rem;
+    background: #b5b0a6;
+  }
+
+  .band-sheet__close {
+    position: absolute;
+    inset-block-start: var(--space-sm);
+    inset-inline-end: var(--space-sm);
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(10, 10, 10, 0.08);
+    color: var(--color-black);
+    cursor: pointer;
+  }
+
+  .band-sheet__close svg {
+    inline-size: 1.3rem;
+    block-size: 1.3rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .band-sheet__name {
+    margin: 0;
+    /* keep the name clear of the close button */
+    padding-inline-end: 3.25rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+
+  .band-sheet__instrument {
+    margin: 0.25rem 0 var(--space-sm);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: #4a4a4a;
+  }
+
+  .band-sheet__bio {
+    margin: 0;
     font-family: var(--font-body);
     font-size: var(--size-body);
     line-height: 1.6;
   }
 
-  .band__grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-md);
+  /* Page scroll lock while the sheet is open. */
+  :global(html.band-sheet-open),
+  :global(html.band-sheet-open body) {
+    overflow: hidden;
   }
 
-  .band__member {
-    opacity: 0;
-    transform: translateY(24px);
-  }
+  @media (prefers-reduced-motion: no-preference) {
+    .band-sheet[open] {
+      animation: band-sheet-up 0.32s var(--ease-editorial, ease-out);
+    }
 
-  @media (prefers-reduced-motion: reduce) {
-    .band__member {
-      opacity: 1;
-      transform: none;
+    .band-sheet[open]::backdrop {
+      animation: band-sheet-fade 0.32s ease-out;
     }
   }
 
-  .band__photo {
-    width: 100%;
-    /* height: auto lets aspect-ratio win over the height attribute, so every
-       portrait is the same size whatever the source photo's proportions. */
-    height: auto;
-    aspect-ratio: 4 / 5;
-    object-fit: cover;
-    object-position: center 25%;
-    display: block;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .band__photo {
-      filter: grayscale(1);
-      transition: filter 0.4s ease;
-    }
-
-    .band__member:hover .band__photo,
-    .band__member:focus-within .band__photo {
-      filter: grayscale(0);
+  @keyframes band-sheet-up {
+    from {
+      translate: 0 100%;
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .band__photo {
-      transition: none;
-    }
-  }
-
-  .band__name {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--size-display-md);
-    margin: var(--space-sm) 0 0;
-  }
-
-  .band__bio {
-    font-family: var(--font-body);
-    font-size: var(--size-body);
-    line-height: 1.5;
-    margin: var(--space-sm) 0 0;
-    opacity: 0.85;
-  }
-
-  @media (min-width: 700px) {
-    .band__grid {
-      grid-template-columns: repeat(3, 1fr);
+  @keyframes band-sheet-fade {
+    from {
+      opacity: 0;
     }
   }
 </style>
 
 <script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { prefersReducedMotion } from '../scripts/reduced-motion';
+  import { setSmoothScrollPaused } from '../scripts/smooth-scroll';
 
-  gsap.registerPlugin(ScrollTrigger);
+  const sheet = document.getElementById('band-sheet') as HTMLDialogElement | null;
 
-  const members = gsap.utils.toArray('[data-band-member]') as HTMLElement[];
+  if (sheet) {
+    const nameEl = sheet.querySelector<HTMLElement>('.band-sheet__name')!;
+    const instrumentEl = sheet.querySelector<HTMLElement>('.band-sheet__instrument')!;
+    const bioEl = sheet.querySelector<HTMLElement>('.band-sheet__bio')!;
+    const panel = sheet.querySelector<HTMLElement>('.band-sheet__panel')!;
+    const closeBtn = sheet.querySelector<HTMLButtonElement>('.band-sheet__close')!;
+    let opener: HTMLElement | null = null;
 
-  if (prefersReducedMotion()) {
-    members.forEach((m) => {
-      m.style.opacity = '1';
-      m.style.transform = 'none';
+    document.querySelectorAll<HTMLButtonElement>('#band .band__open').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest<HTMLElement>('.band__card');
+        if (!card || sheet.open) return;
+        // Fill from the card, before showModal(), so the dialog's name is set when it opens.
+        nameEl.textContent = card.querySelector('.band__name')?.textContent ?? '';
+        instrumentEl.textContent = card.querySelector('.band__instrument')?.textContent ?? '';
+        bioEl.textContent = card.querySelector('.band__bio')?.textContent ?? '';
+        opener = btn;
+        document.documentElement.classList.add('band-sheet-open');
+        setSmoothScrollPaused(true);
+        sheet.showModal();
+        panel.scrollTop = 0;
+      });
     });
-  } else {
-    gsap.to(members, {
-      opacity: 1,
-      y: 0,
-      duration: 0.6,
-      stagger: 0.15,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: '[data-band-grid]',
-        start: 'top 75%',
-      },
+
+    closeBtn.addEventListener('click', () => sheet.close());
+
+    // Only the backdrop can be the target: the dialog itself has no padding.
+    sheet.addEventListener('click', (e) => {
+      if (e.target === sheet) sheet.close();
     });
 
-    // Re-measure after web fonts finish loading — FOUT/FOIT swap can change the section's
-    // rendered height (and thus the ScrollTrigger start/end markers) after the first measurement.
-    if ('fonts' in document) {
-      document.fonts.ready.then(() => ScrollTrigger.refresh());
-    }
+    // Fires for Escape, the close button and the backdrop alike.
+    sheet.addEventListener('close', () => {
+      document.documentElement.classList.remove('band-sheet-open');
+      setSmoothScrollPaused(false);
+      // Safari does not focus buttons on click, so the browser's own restore is not enough.
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+      opener = null;
+    });
   }
 </script>

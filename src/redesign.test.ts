@@ -17,6 +17,7 @@ export const GUARDED_SOURCES = [
   'src/components/ActionBar.astro',
   'src/components/Ticker.astro',
   'src/components/BandGallery.astro',
+  'src/components/BandMembers.astro',
 ];
 
 /** Files that must exist as of Task 2. */
@@ -269,5 +270,118 @@ describe('Task 4 — gallery swipe row, viewer and read more', () => {
     const src = readFileSync(join(ROOT, 'src/components/BandGallery.astro'), 'utf-8');
     expect(src).not.toContain('gsap');
     expect(src).not.toContain('data-gallery-cell');
+  });
+});
+
+describe('Task 5 — band cards with a bio sheet', () => {
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+  const copyHe = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.he.json'), 'utf-8'));
+  const copyEn = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.en.json'), 'utf-8'));
+  const core = (
+    JSON.parse(readFileSync(join(ROOT, 'src/content/band-members.json'), 'utf-8')) as {
+      role: string;
+      nameHe: string;
+      nameEn: string;
+      bioHe: string;
+      bioEn: string;
+    }[]
+  ).filter((m) => m.role === 'core');
+  const decode = (t: string) =>
+    t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const bandOf = (html: string) =>
+    html.slice(html.indexOf('id="band"'), html.indexOf('</section>', html.indexOf('id="band"')));
+
+  const pages: [string, 'He' | 'En', typeof copyHe][] = [
+    ['he/index.html', 'He', copyHe],
+    ['en/index.html', 'En', copyEn],
+    ['index.html', 'En', copyEn],
+  ];
+
+  it('there are six core members', () => {
+    expect(core).toHaveLength(6);
+  });
+
+  for (const [rel, L, copy] of pages) {
+    it(`${rel} has every bio inside a .band__bio element, once`, () => {
+      const html = read(rel);
+      const bios = [...html.matchAll(/<p[^>]*class="band__bio"[^>]*>([\s\S]*?)<\/p>/g)].map((m) => decode(m[1]));
+      expect(bios).toHaveLength(6);
+      for (const m of core) {
+        expect(bios).toContain(m[`bio${L}` as 'bioHe' | 'bioEn']);
+        // no bio text duplicated anywhere else (the shared sheet is filled by script)
+        const escaped = m[`bio${L}` as 'bioHe' | 'bioEn'];
+        expect(decode(html).split(escaped).length - 1).toBe(1);
+      }
+    });
+
+    it(`${rel} has exactly one band-sheet dialog, labelled, with a localized close button`, () => {
+      const html = read(rel);
+      expect(html.match(/id="band-sheet"/g) ?? []).toHaveLength(1);
+      const dialog = html.match(/<dialog[^>]*id="band-sheet"[^>]*>[\s\S]*?<\/dialog>/);
+      expect(dialog).not.toBeNull();
+      const d = dialog![0];
+      expect(d).toMatch(/aria-labelledby="([^"]+)"/);
+      const id = d.match(/aria-labelledby="([^"]+)"/)![1];
+      expect(d).toContain(`id="${id}"`);
+      expect(d).toContain(`aria-label="${copy.ui.bandSheetClose}"`);
+    });
+
+    it(`${rel} has six open buttons, each carrying the member name, with a colorize photo`, () => {
+      const band = bandOf(read(rel));
+      const buttons = band.match(/<button[^>]*class="band__open"[^>]*>[\s\S]*?<\/button>/g) ?? [];
+      expect(buttons).toHaveLength(6);
+      buttons.forEach((b, i) => {
+        expect(b).toContain('type="button"');
+        expect(decode(b)).toContain(core[i][`name${L}` as 'nameHe' | 'nameEn']);
+        const img = b.match(/<img[^>]*>/)![0];
+        expect(img).toContain('data-colorize');
+        expect(img).toMatch(/width="\d+"/);
+        expect(img).toMatch(/height="\d+"/);
+        expect(img).toMatch(/src="[^"]+\.webp"/);
+        expect(img).toMatch(/\salt(=""|\s|>)/);
+      });
+      expect((band.match(/<article[^>]*class="band__card"[^>]*data-reveal|<article[^>]*data-reveal[^>]*class="band__card"/g) ?? []).length).toBe(6);
+      expect(band).toContain('data-swipe');
+      expect((band.match(/data-swipe-item/g) ?? []).length).toBe(6);
+    });
+
+    it(`${rel} keeps the statement paragraph above the row`, () => {
+      const band = bandOf(read(rel));
+      const at = band.indexOf('class="band__statement"');
+      expect(at).toBeGreaterThan(-1);
+      expect(at).toBeLessThan(band.indexOf('data-swipe'));
+      expect(decode(band)).toContain(copy.band.statement);
+    });
+  }
+
+  it('the section is dark, not off-white, and the old GSAP entrance and hover grayscale are gone', () => {
+    const src = readFileSync(join(ROOT, 'src/components/BandMembers.astro'), 'utf-8');
+    expect(src).not.toContain('gsap');
+    expect(src).not.toContain('data-band-member');
+    const css = cssOf('src/components/BandMembers.astro').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(css).not.toContain('grayscale');
+    const band = css.match(/(^|\})\s*\.band\s*\{([^{}]*)\}/);
+    expect(band).not.toBeNull();
+    expect(band![2]).toMatch(/background\s*:\s*var\(--color-black/);
+    expect(band![2]).not.toMatch(/background\s*:\s*var\(--color-off-white/);
+  });
+
+  it('the .band__bio hide rule is scoped under .js (visible without JavaScript)', () => {
+    const css = cssOf('src/components/BandMembers.astro').replace(/\/\*[\s\S]*?\*\//g, '');
+    const rules = [...css.matchAll(/([^{}]*\.band__bio[^{}]*)\{([^{}]*)\}/g)];
+    const hiding = rules.filter((r) => /clip|visibility\s*:\s*hidden|display\s*:\s*none|position\s*:\s*absolute/.test(r[2]));
+    expect(hiding.length).toBeGreaterThan(0);
+    for (const r of hiding) expect(r[1]).toMatch(/\.js(?![\w-])/);
+  });
+
+  it('the sheet slides up only with no-preference motion, and the photo is anchored on the face', () => {
+    const css = cssOf('src/components/BandMembers.astro').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(css).toMatch(/object-position\s*:\s*center 20%/);
+    const outside = stripNoPreferenceBlocks(css);
+    expect(outside).not.toMatch(/(animation|transition)\s*:/);
   });
 });
