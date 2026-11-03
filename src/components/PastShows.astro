@@ -1,23 +1,28 @@
 ---
 import type { Show } from './UpcomingShows.astro';
 import { imageSize } from '../lib/image-size';
+import { pastYears, showYear } from '../lib/shows-ui';
+import SwipeRow from './SwipeRow.astro';
 
 interface Props {
   locale: 'he' | 'en';
   heading: string;
   shows: Show[];
+  enlargeLabel: string;
+  allShowsLabel: string;
+  hideShowsLabel: string;
+  allYearsLabel: string;
 }
-const { locale, heading, shows } = Astro.props;
+const { locale, heading, shows, enlargeLabel, allShowsLabel, hideShowsLabel, allYearsLabel } = Astro.props;
 
 const past = shows.filter((s) => s.status === 'past');
+const years = pastYears(shows);
 
-// Real event posters (saved by the user from Facebook), used purely as a
-// decorative collage — deliberately not mapped 1:1 to entries in `shows`.
-// See docs/superpowers/specs/2026-08-11-content-refinements-design.md for
-// why linking was dropped. Rendered as a masonry that preserves each
-// poster's native aspect ratio — no forced square cropping, since the
-// poster artwork itself (band name, date, venue, main visual) needs to
-// stay fully visible and legible.
+// Real event posters (saved by the user from Facebook). They are decorative:
+// deliberately not mapped 1:1 to entries in `shows`, so no alt text and no
+// captions. See docs/superpowers/specs/2026-08-11-content-refinements-design.md
+// for why linking was dropped. Each poster keeps its native aspect ratio, since
+// the artwork itself (band name, date, venue) must stay fully visible.
 const posters = [
   'poster-bar-giyora-stardust.webp',
   'poster-tassa.webp',
@@ -46,47 +51,82 @@ function formatDate(iso: string, locale: 'he' | 'en') {
 <section id="past-shows" class="past has-grain">
   <h2 class="past__heading">{heading}</h2>
 
-  <div class="past__collage" data-past-collage>
+  <SwipeRow label={heading}>
     {posters.map((p, i) => (
-      <div class="past__poster-cell" data-past-poster>
-        <img
-          src={`/assets/posters/${p}`}
-          alt=""
-          width={posterSizes[i].width}
-          height={posterSizes[i].height}
-          loading="lazy"
-          decoding="async"
-          class="past__poster-img"
-        />
+      <div class="past__poster" data-swipe-item>
+        <button
+          type="button"
+          class="zoomable"
+          data-lightbox="posters"
+          data-full={`/assets/posters/${p}`}
+          data-caption=""
+          aria-label={enlargeLabel}
+        >
+          <img
+            src={`/assets/posters/${p}`}
+            alt=""
+            width={posterSizes[i].width}
+            height={posterSizes[i].height}
+            style={`aspect-ratio: ${posterSizes[i].width} / ${posterSizes[i].height}`}
+            loading={i < 2 ? undefined : 'lazy'}
+            decoding="async"
+            class="past__poster-img"
+          />
+        </button>
       </div>
     ))}
+  </SwipeRow>
+
+  <button
+    type="button"
+    class="past__toggle"
+    data-allshows
+    aria-expanded="false"
+    aria-controls="past-panel"
+    data-show={allShowsLabel}
+    data-hide={hideShowsLabel}
+  >
+    {allShowsLabel}
+  </button>
+
+  <div id="past-panel" class="past__panel" role="region" aria-label={heading} tabindex="0" data-lenis-prevent>
+    <div class="past__chips" data-chips>
+      <button type="button" class="past__chip" data-year="ALL" aria-pressed="true">{allYearsLabel}</button>
+      {years.map((y) => (
+        <button type="button" class="past__chip" data-year={y} aria-pressed="false">{y}</button>
+      ))}
+    </div>
+
+    <ul class="past__list">
+      {past.map((s) => (
+        <li class="past__row" data-year={showYear(s)}>
+          <span class="past__date label">{formatDate(s.dateISO, locale)}</span>
+          <span class="past__venue">{locale === 'he' ? s.venueHe : s.venueEn}</span>
+          <span class="past__city label">{locale === 'he' ? s.cityHe : s.cityEn}</span>
+        </li>
+      ))}
+    </ul>
   </div>
-
-  <ul class="past__list" data-past-list>
-    {past.map((s) => (
-      <li class="past__row" data-past-row>
-        <span class="past__date label">{formatDate(s.dateISO, locale)}</span>
-        <span class="past__venue">{locale === 'he' ? s.venueHe : s.venueEn}</span>
-        <span class="past__city label">{locale === 'he' ? s.cityHe : s.cityEn}</span>
-      </li>
-    ))}
-  </ul>
 </section>
-
-<noscript>
-  <style is:global>
-    #past-shows .past__poster-cell,
-    #past-shows .past__row {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-  </style>
-</noscript>
 
 <style>
   .past {
+    --swipe-item: 72%;
+    --swipe-gap: var(--space-xs);
     background: var(--color-black);
-    padding: var(--space-xl) var(--space-md);
+    padding-block: var(--space-xl);
+  }
+
+  .past :global(.swipe) {
+    --swipe-gutter: var(--space-md);
+    max-inline-size: 64rem;
+    margin-inline: auto;
+  }
+
+  /* Posters differ in shape (square and wide): centre them on the track and let
+     each keep its own proportions, so nothing is cropped. */
+  .past :global(.swipe__track) {
+    align-items: center;
   }
 
   .past__heading {
@@ -94,69 +134,104 @@ function formatDate(iso: string, locale: 'he' | 'en') {
     font-weight: 800;
     font-size: var(--size-display-md);
     text-align: center;
-    margin: 0 0 var(--space-lg);
+    margin: 0 0 var(--space-md);
+    padding-inline: var(--space-md);
     opacity: 0.85;
   }
 
-  /* Collage: a real masonry (CSS multi-column), not a grid — this is
-     deliberate. A grid with fixed cell aspect ratios forces every poster
-     into the same crop regardless of whether it's square or landscape,
-     which cuts off band name / date / venue / ticket info on some of them.
-     Columns let each <img> render at its natural width:auto height, so
-     square posters stay square and landscape posters stay landscape.
-     Purely decorative, no captions, no links. */
-  .past__collage {
-    column-count: 3;
-    column-gap: var(--space-xs);
-    max-width: 64rem;
-    margin: 0 auto var(--space-lg);
-  }
-
-  .past__poster-cell {
-    break-inside: avoid;
-    margin-bottom: var(--space-xs);
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
   .past__poster-img {
-    width: 100%;
-    height: auto;
+    inline-size: 100%;
+    block-size: auto;
     display: block;
-    filter: grayscale(0.3);
-    transition: filter 0.3s ease, transform 0.3s ease;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .past__poster-cell:hover .past__poster-img {
-      filter: grayscale(0);
-      transform: scale(1.02);
-    }
+  /* "All shows": with JS the list starts collapsed behind this button. Without
+     JS the button stays hidden and the whole list is simply visible. */
+  .past__toggle[data-allshows] {
+    display: none;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .past__poster-cell {
-      opacity: 1;
-      transform: none;
-    }
-    .past__poster-img {
-      transition: none;
-    }
+  :global(.js) .past__toggle[data-allshows] {
+    display: block;
+    min-block-size: 2.75rem;
+    margin: var(--space-md) auto 0;
+    padding: 0.5rem var(--space-md);
+    border: 1px solid var(--color-accent-orange);
+    border-radius: 999px;
+    background: none;
+    color: var(--color-accent-orange);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--size-body);
+    cursor: pointer;
   }
 
-  @media (max-width: 699px) {
-    .past__collage {
-      column-count: 2;
-    }
+  .past__toggle:focus-visible,
+  .past__chip:focus-visible,
+  .past__panel:focus-visible {
+    outline: 2px solid var(--color-accent-orange);
+    outline-offset: 2px;
+  }
+
+  /* A short scroller: the page keeps its length however many shows there are. */
+  .past__panel {
+    inline-size: min(40rem, calc(100% - var(--space-md) * 2));
+    max-block-size: 22rem;
+    margin: var(--space-md) auto 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--color-charcoal);
+  }
+
+  .past__panel[hidden] {
+    display: none;
+  }
+
+  /* Year chips only do something with JS, so they only show with JS. */
+  .past__chips[data-chips] {
+    display: none;
+  }
+
+  :global(.js) .past__chips[data-chips] {
+    display: flex;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    overflow-x: auto;
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    background: var(--color-black);
+    border-block-end: 1px solid var(--color-charcoal);
+    scrollbar-width: none;
+  }
+
+  .past__chip {
+    flex: 0 0 auto;
+    min-block-size: 2.75rem;
+    min-inline-size: 3.5rem;
+    padding: 0.25rem var(--space-sm);
+    border: 1px solid rgba(242, 237, 228, 0.4);
+    border-radius: 999px;
+    background: none;
+    color: var(--color-off-white);
+    font-family: var(--font-mono);
+    font-size: var(--size-label);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+
+  .past__chip[aria-pressed='true'] {
+    border-color: var(--color-accent-orange);
+    background: var(--color-accent-orange);
+    color: var(--color-black);
+    font-weight: 700;
   }
 
   /* Chronological list */
   .past__list {
     list-style: none;
     margin: 0;
-    padding: 0;
-    max-width: 40rem;
-    margin-inline: auto;
+    padding: 0 var(--space-sm);
     display: flex;
     flex-direction: column;
   }
@@ -167,16 +242,12 @@ function formatDate(iso: string, locale: 'he' | 'en') {
     align-items: baseline;
     gap: var(--space-sm);
     padding-block: var(--space-xs);
-    border-bottom: 1px solid var(--color-charcoal);
-    opacity: 0;
-    transform: translateY(8px);
+    border-block-end: 1px solid var(--color-charcoal);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .past__row {
-      opacity: 1;
-      transform: none;
-    }
+  /* display:grid above would beat the UA [hidden] rule, so say it again. */
+  .past__row[hidden] {
+    display: none;
   }
 
   .past__venue {
@@ -191,50 +262,38 @@ function formatDate(iso: string, locale: 'he' | 'en') {
       gap: 2px;
     }
   }
+
+  @media (min-width: 700px) {
+    .past {
+      --swipe-item: 34%;
+    }
+  }
 </style>
 
 <script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { prefersReducedMotion } from '../scripts/reduced-motion';
+  const toggle = document.querySelector<HTMLButtonElement>('[data-allshows]');
+  const panel = document.getElementById('past-panel');
 
-  gsap.registerPlugin(ScrollTrigger);
+  if (toggle && panel) {
+    // JS is running: collapse the list behind the button (the HTML ships it open).
+    const setOpen = (open: boolean) => {
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.textContent = (open ? toggle.dataset.hide : toggle.dataset.show) ?? '';
+    };
+    setOpen(false);
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
 
-  const posterCells = gsap.utils.toArray('[data-past-poster]') as HTMLElement[];
-  const rows = gsap.utils.toArray('[data-past-row]') as HTMLElement[];
-
-  if (prefersReducedMotion()) {
-    [...posterCells, ...rows].forEach((el) => {
-      el.style.opacity = '1';
-      el.style.transform = 'none';
-    });
-  } else {
-    gsap.to(posterCells, {
-      opacity: 1,
-      y: 0,
-      duration: 0.5,
-      stagger: 0.05,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: '[data-past-collage]',
-        start: 'top 85%',
-      },
-    });
-
-    gsap.to(rows, {
-      opacity: 1,
-      y: 0,
-      duration: 0.3,
-      stagger: 0.02,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: '[data-past-list]',
-        start: 'top 90%',
-      },
-    });
-
-    if ('fonts' in document) {
-      document.fonts.ready.then(() => ScrollTrigger.refresh());
+    // Year chips hide rows of other years; every row stays in the page.
+    const chips = Array.from(panel.querySelectorAll<HTMLButtonElement>('[data-chips] [data-year]'));
+    const rows = Array.from(panel.querySelectorAll<HTMLElement>('.past__row'));
+    for (const chip of chips) {
+      chip.addEventListener('click', () => {
+        const year = chip.dataset.year;
+        for (const c of chips) c.setAttribute('aria-pressed', String(c === chip));
+        for (const row of rows) row.hidden = year !== 'ALL' && row.dataset.year !== year;
+        panel.scrollTop = 0;
+      });
     }
   }
 </script>

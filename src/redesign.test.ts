@@ -20,6 +20,7 @@ export const GUARDED_SOURCES = [
   'src/components/BandMembers.astro',
   'src/components/BowieCollage.astro',
   'src/components/UpcomingShows.astro',
+  'src/components/PastShows.astro',
 ];
 
 /** Files that must exist as of Task 2. */
@@ -596,5 +597,166 @@ describe('swipe item focus rings stay inside the clip box', () => {
     const bm = cssOf('src/components/BandMembers.astro');
     expect(lb).toMatch(/:global\(\.zoomable:focus-visible::after\)\s*\{[^{}]*inset\s*:\s*0[^{}]*box-shadow\s*:\s*inset/);
     expect(bm).toMatch(/\.band__open:focus-visible::after\s*\{[^{}]*inset\s*:\s*0[^{}]*box-shadow\s*:\s*inset/);
+  });
+});
+
+describe('Task 8 — past shows: poster row and short list panel', () => {
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+  const copyHe = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.he.json'), 'utf-8'));
+  const copyEn = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.en.json'), 'utf-8'));
+  const decode = (t: string) =>
+    t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const pastOf = (html: string) =>
+    html.slice(html.indexOf('id="past-shows"'), html.indexOf('</section>', html.indexOf('id="past-shows"')));
+  const allShows = JSON.parse(readFileSync(join(ROOT, 'src/content/shows.json'), 'utf-8')) as {
+    status: string;
+    dateISO: string;
+    venueHe: string;
+    venueEn: string;
+    cityHe: string;
+    cityEn: string;
+  }[];
+  const past = allShows.filter((s) => s.status === 'past');
+  const pastYearsExpected = [...new Set(past.map((s) => s.dateISO.slice(0, 4)))].sort().reverse();
+  const stripCss = (path: string) => cssOf(path).replace(/\/\*[\s\S]*?\*\//g, '');
+
+  const pages: [string, 'he' | 'en', typeof copyHe][] = [
+    ['he/index.html', 'he', copyHe],
+    ['en/index.html', 'en', copyEn],
+    ['index.html', 'en', copyEn],
+  ];
+
+  it('the fixture has several past years, so the chip tests can fail', () => {
+    expect(past.length).toBeGreaterThan(10);
+    expect(pastYearsExpected.length).toBeGreaterThan(2);
+    expect(pastYearsExpected).not.toContain('2021');
+    expect(pastYearsExpected).not.toContain('2027');
+  });
+
+  for (const [rel, loc, copy] of pages) {
+    it(`${rel} has one row per past show, in order, with the year of its date`, () => {
+      const section = pastOf(read(rel));
+      const rows = [...section.matchAll(/<li[^>]*class="[^"]*\bpast__row\b[^"]*"[^>]*>([\s\S]*?)<\/li>/g)];
+      expect(rows).toHaveLength(past.length);
+      rows.forEach((row, i) => {
+        const year = past[i].dateISO.slice(0, 4);
+        expect(row[0]).toContain(`data-year="${year}"`);
+        const text = decode(row[1]);
+        // the visible date carries the same year, and venue and city are unchanged
+        expect(text).toContain(year);
+        expect(text).toContain(loc === 'he' ? past[i].venueHe : past[i].venueEn);
+        expect(text).toContain(loc === 'he' ? past[i].cityHe : past[i].cityEn);
+      });
+    });
+
+    it(`${rel} has an "all" chip plus one chip per past year and none for other years`, () => {
+      const section = pastOf(read(rel));
+      const chips = [...section.matchAll(/<button[^>]*data-year="([^"]+)"[^>]*>([\s\S]*?)<\/button>/g)];
+      expect(chips.map((c) => c[1])).toEqual(['ALL', ...pastYearsExpected]);
+      expect(decode(chips[0][2])).toContain(copy.ui.allYears);
+      chips.forEach((c, i) => {
+        expect(c[0]).toContain('type="button"');
+        expect(c[0]).toContain(`aria-pressed="${i === 0 ? 'true' : 'false'}"`);
+        if (i > 0) expect(c[2]).toContain(c[1]);
+      });
+    });
+
+    it(`${rel} has 11 poster triggers in a swipe row; only the first two load eagerly`, () => {
+      const section = pastOf(read(rel));
+      const triggers = section.match(/<button[^>]*data-lightbox="posters"[^>]*>/g) ?? [];
+      expect(triggers).toHaveLength(11);
+      for (const t of triggers) {
+        expect(t).toContain('type="button"');
+        expect(t).toContain('class="zoomable"');
+        expect(t).toMatch(/data-full="\/assets\/posters\/[^"]+\.webp"/);
+        expect(t).toContain('data-caption=""');
+        expect(t).toContain(`aria-label="${copy.ui.enlarge}"`);
+      }
+      expect(section).toContain('data-swipe');
+      expect((section.match(/<div[^>]*data-swipe-item/g) ?? []).length).toBe(11);
+      const imgs = section.match(/<img[^>]*>/g) ?? [];
+      expect(imgs).toHaveLength(11);
+      imgs.forEach((img, i) => {
+        expect(img).toMatch(/\salt=""/);
+        expect(img).toMatch(/width="\d+"/);
+        expect(img).toMatch(/height="\d+"/);
+        if (i < 2) expect(img).not.toContain('loading="lazy"');
+        else expect(img).toContain('loading="lazy"');
+      });
+    });
+
+    it(`${rel} has a labelled all-shows toggle and a panel that is not hidden in the HTML`, () => {
+      const section = decode(pastOf(read(rel)));
+      const btn = section.match(/<button[^>]*data-allshows[^>]*>[\s\S]*?<\/button>/);
+      expect(btn).not.toBeNull();
+      expect(btn![0]).toContain('type="button"');
+      expect(btn![0]).toContain('aria-controls="past-panel"');
+      expect(btn![0]).toMatch(/aria-expanded="(true|false)"/);
+      expect(btn![0]).toContain(`data-show="${copy.ui.allShows}"`);
+      expect(btn![0]).toContain(`data-hide="${copy.ui.hideShows}"`);
+      expect(btn![0]).toContain(copy.ui.allShows);
+      const panel = section.match(/<div[^>]*id="past-panel"[^>]*>/);
+      expect(panel).not.toBeNull();
+      expect(panel![0]).not.toMatch(/\shidden(\s|=|>)/);
+      expect(panel![0]).toContain('data-lenis-prevent');
+      expect(panel![0]).toContain('tabindex="0"');
+      expect(panel![0]).toContain('role="region"');
+      expect(panel![0]).toContain(`aria-label="${copy.pastShows.heading}"`);
+      expect(section.indexOf('data-allshows')).toBeLessThan(section.indexOf('id="past-panel"'));
+    });
+
+    it(`${rel} keeps the heading and puts the posters before the toggle`, () => {
+      const section = decode(pastOf(read(rel)));
+      expect(section).toContain(copy.pastShows.heading);
+      expect(section.indexOf('data-lightbox="posters"')).toBeLessThan(section.indexOf('data-allshows'));
+    });
+  }
+
+  it('the toggle and the chips are hidden by default and shown only under .js', () => {
+    const css = stripCss('src/components/PastShows.astro');
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+    for (const hook of ['[data-allshows]', '[data-chips]']) {
+      const mine = rules.filter((r) => r[1].includes(hook));
+      const hidden = mine.filter((r) => /display\s*:\s*none/.test(r[2]) && !/\.js(?![\w-])/.test(r[1]));
+      expect(hidden.length, `${hook} needs a default display:none rule`).toBeGreaterThan(0);
+      const shown = mine.filter((r) => /display\s*:\s*(?!none)\S/.test(r[2]));
+      expect(shown.length, `${hook} needs a .js rule that shows it`).toBeGreaterThan(0);
+      for (const r of shown) expect(r[1], `${hook} is shown outside .js`).toMatch(/\.js(?![\w-])/);
+    }
+  });
+
+  it('a row hidden by a chip really disappears (display beats the grid)', () => {
+    const css = stripCss('src/components/PastShows.astro');
+    expect(css).toMatch(/\.past__row\[hidden\][^{}]*\{[^{}]*display\s*:\s*none/);
+  });
+
+  it('the panel is a short scroller that does not chain scrolling to the page', () => {
+    const css = stripCss('src/components/PastShows.astro');
+    const rule = css.match(/\.past__panel\s*\{([^{}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toMatch(/max-block-size\s*:\s*22rem/);
+    expect(rule![1]).toMatch(/overflow-y\s*:\s*auto/);
+    expect(rule![1]).toMatch(/overscroll-behavior\s*:\s*contain/);
+  });
+
+  it('the masonry collage, the per-row GSAP fade and the initial opacity:0 are gone', () => {
+    const src = readFileSync(join(ROOT, 'src/components/PastShows.astro'), 'utf-8');
+    expect(src).not.toContain('gsap');
+    expect(src).not.toContain('ScrollTrigger');
+    expect(src).not.toContain('past__collage');
+    expect(src).not.toContain('data-past-poster');
+    expect(src).not.toContain('data-past-row');
+    expect(stripCss('src/components/PastShows.astro')).not.toMatch(/opacity\s*:\s*0(?![.\d])/);
+  });
+
+  it('the component keeps its original props and takes the new ui labels', () => {
+    const src = readFileSync(join(ROOT, 'src/components/PastShows.astro'), 'utf-8');
+    for (const prop of ['locale', 'heading', 'shows', 'enlargeLabel', 'allShowsLabel', 'hideShowsLabel', 'allYearsLabel']) {
+      expect(src).toMatch(new RegExp(`\\b${prop}\\b`));
+    }
   });
 });
