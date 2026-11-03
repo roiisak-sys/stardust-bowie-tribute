@@ -89,7 +89,7 @@ function formatDate(iso: string, locale: 'he' | 'en') {
     {allShowsLabel}
   </button>
 
-  <div id="past-panel" class="past__panel" role="region" aria-label={heading} tabindex="0" data-lenis-prevent>
+  <div id="past-panel" class="past__panel" role="region" aria-label={allShowsLabel} tabindex="0" data-lenis-prevent>
     <div class="past__chips" data-chips>
       <button type="button" class="past__chip" data-year="ALL" aria-pressed="true">{allYearsLabel}</button>
       {years.map((y) => (

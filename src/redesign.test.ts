@@ -633,8 +633,6 @@ describe('Task 8 — past shows: poster row and short list panel', () => {
   it('the fixture has several past years, so the chip tests can fail', () => {
     expect(past.length).toBeGreaterThan(10);
     expect(pastYearsExpected.length).toBeGreaterThan(2);
-    expect(pastYearsExpected).not.toContain('2021');
-    expect(pastYearsExpected).not.toContain('2027');
   });
 
   for (const [rel, loc, copy] of pages) {
@@ -657,6 +655,10 @@ describe('Task 8 — past shows: poster row and short list panel', () => {
       const section = pastOf(read(rel));
       const chips = [...section.matchAll(/<button[^>]*data-year="([^"]+)"[^>]*>([\s\S]*?)<\/button>/g)];
       expect(chips.map((c) => c[1])).toEqual(['ALL', ...pastYearsExpected]);
+      // no chip for the years just outside the data's range (derived, not hardcoded)
+      const rendered = chips.map((c) => c[1]);
+      expect(rendered).not.toContain(String(Number(pastYearsExpected[pastYearsExpected.length - 1]) - 1));
+      expect(rendered).not.toContain(String(Number(pastYearsExpected[0]) + 1));
       expect(decode(chips[0][2])).toContain(copy.ui.allYears);
       chips.forEach((c, i) => {
         expect(c[0]).toContain('type="button"');
@@ -705,7 +707,7 @@ describe('Task 8 — past shows: poster row and short list panel', () => {
       expect(panel![0]).toContain('data-lenis-prevent');
       expect(panel![0]).toContain('tabindex="0"');
       expect(panel![0]).toContain('role="region"');
-      expect(panel![0]).toContain(`aria-label="${copy.pastShows.heading}"`);
+      expect(panel![0]).toContain(`aria-label="${copy.ui.allShows}"`);
       expect(section.indexOf('data-allshows')).toBeLessThan(section.indexOf('id="past-panel"'));
     });
 
