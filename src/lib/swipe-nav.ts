@@ -107,18 +107,13 @@ export function pageStep({ pitch, content, gap }: { pitch: number; content: numb
   return count * pitch;
 }
 
-/** What the auto-advance of a row does on a tick, or null when it should hold still. */
-export function autoAction(state: {
-  visible: boolean;
-  hovering: boolean;
-  focused: boolean;
-  docHidden: boolean;
-  dialogOpen: boolean;
-  now: number;
-  resumeAt: number;
-  canNext: boolean;
-}): 'next' | 'restart' | null {
-  const { visible, hovering, focused, docHidden, dialogOpen, now, resumeAt, canNext } = state;
-  if (!visible || hovering || focused || docHidden || dialogOpen || now < resumeAt) return null;
-  return canNext ? 'next' : 'restart';
+/**
+ * Keeps a continuously flowing row inside one loop of its items: once the
+ * position has travelled `loop` pixels (either sign, as RTL rows go negative)
+ * it jumps back by exactly one loop, which looks identical because the items
+ * repeat.
+ */
+export function wrapScroll(pos: number, loop: number): number {
+  if (loop <= 0) return pos;
+  return Math.abs(pos) >= loop ? pos - Math.sign(pos) * loop : pos;
 }

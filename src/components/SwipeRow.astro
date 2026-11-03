@@ -3,7 +3,7 @@
 // puts in the slot with `data-swipe-item`. Sizing hooks (set on .swipe or any
 // parent): --swipe-item (item width, default 82%), --swipe-gap, --swipe-gutter.
 // For mouse users (hover + fine pointer, JS on) previous / next buttons scroll
-// the row, since the scrollbar is hidden. `auto` makes the row step along by itself.
+// the row, since the scrollbar is hidden. `auto` makes the row flow slowly by itself.
 interface Props {
   label: string;
   prevLabel: string;
@@ -51,11 +51,16 @@ const { label, prevLabel, nextLabel, auto = false } = Astro.props;
     -webkit-overflow-scrolling: touch;
   }
 
+  /* A flowing row is a free-moving strip: snapping would fight the motion. */
+  .swipe--flow .swipe__track {
+    scroll-snap-type: none;
+  }
+
   .swipe__track::-webkit-scrollbar {
     display: none;
   }
 
-  .swipe__track > :global([data-swipe-item]) {
+  .swipe__track > :global([data-swipe-item], [data-swipe-clone]) {
     flex: 0 0 var(--swipe-item, 82%);
     min-inline-size: 0;
     scroll-snap-align: start;

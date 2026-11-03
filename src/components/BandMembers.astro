@@ -34,7 +34,7 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
 <section id="band" class="band has-grain">
   <p class="band__statement">{statement}</p>
 
-  <SwipeRow auto label={rowLabel} prevLabel={prevLabel} nextLabel={nextLabel}>
+  <SwipeRow label={rowLabel} prevLabel={prevLabel} nextLabel={nextLabel}>
     {members.map((m, i) => (
       <article class="band__card" data-swipe-item data-reveal style={`--reveal-delay: ${Math.min(i, 3) * 80}ms`}>
         <button type="button" class="band__open" aria-label={nameOf(m)}>
