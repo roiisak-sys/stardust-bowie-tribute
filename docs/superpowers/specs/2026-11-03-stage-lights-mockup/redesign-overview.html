@@ -1,0 +1,151 @@
+<style>
+  .ph-row{display:flex;gap:22px;overflow-x:auto;padding:8px 4px 24px;direction:ltr}
+  .ph{flex:0 0 268px;direction:rtl}
+  .ph-cap{font:600 13px/1.3 system-ui;margin:0 0 8px;text-align:center;opacity:.85}
+  .ph-cap small{display:block;font-weight:400;opacity:.6;margin-top:2px}
+  .scr{position:relative;width:268px;height:540px;border-radius:30px;border:6px solid #2a2a2a;background:#0a0a0a;overflow:hidden;color:#f2ede4;font-family:system-ui,'Segoe UI',Arial;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .scr *{box-sizing:border-box}
+  .org{color:#f96949}.grn{color:#4dff88}
+  .chip{display:inline-block;padding:5px 11px;border-radius:99px;border:1px solid #3a3a3a;font-size:11px;margin-inline-start:6px;white-space:nowrap}
+  .chip.on{background:#f96949;border-color:#f96949;color:#0a0a0a;font-weight:700}
+  .tick{position:absolute;left:0;right:0;overflow:hidden;white-space:nowrap;font:800 11px system-ui;letter-spacing:.18em;color:#0a0a0a;background:#f96949;padding:5px 0}
+  .tick span{display:inline-block;animation:tk 14s linear infinite;padding-inline-end:20px}
+  @keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .btn{display:block;text-align:center;font:700 13px system-ui;padding:11px;border-radius:99px;background:#4dff88;color:#0a0a0a}
+  .h{font:800 20px/1.15 system-ui;margin:0}
+  .cap{font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;font-family:ui-monospace,monospace}
+  /* hero */
+  .hero-bg{position:absolute;inset:0;background:url(files/hero.jpg) center/cover;filter:grayscale(.3) contrast(1.1);transform:scale(1.15);animation:kb 12s ease-in-out infinite alternate}
+  @keyframes kb{to{transform:scale(1.28) translate(-3%,2%)}}
+  .scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,10,.5),rgba(10,10,10,.82) 70%,#0a0a0a)}
+  /* gallery carousel */
+  .car{display:flex;gap:10px;position:absolute;inset-inline-start:0;top:130px;animation:drift 9s ease-in-out infinite alternate;direction:ltr}
+  .car div{flex:0 0 196px;height:290px;border-radius:14px;background-size:cover;background-position:center;position:relative}
+  @keyframes drift{from{transform:translateX(6px)}to{transform:translateX(-120px)}}
+  .dots{position:absolute;bottom:70px;left:0;right:0;display:flex;justify-content:center;gap:5px}
+  .dots i{width:6px;height:6px;border-radius:50%;background:#444}.dots i:first-child{background:#f96949;width:18px;border-radius:4px}
+  .lb{position:absolute;inset:0;background:rgba(0,0,0,.94);display:flex;align-items:center;justify-content:center;opacity:0;animation:lb 9s ease-in-out infinite}
+  @keyframes lb{0%,55%{opacity:0}62%,92%{opacity:1}100%{opacity:0}}
+  .lb .pic{width:230px;height:330px;border-radius:10px;background:url(files/g05.jpg) center/cover;transform:scale(.9);animation:lbp 9s ease-in-out infinite}
+  @keyframes lbp{0%,55%{transform:scale(.8)}66%,92%{transform:scale(1)}100%{transform:scale(.8)}}
+  /* members */
+  .mcar{position:absolute;top:96px;right:14px;display:flex;gap:10px;direction:rtl;animation:mdrift 8s ease-in-out infinite alternate}
+  .mcar .m{flex:0 0 168px;height:260px;border-radius:16px;background-size:cover;background-position:center 20%;position:relative;overflow:hidden}
+  .mcar .m b{position:absolute;bottom:0;inset-inline:0;padding:24px 12px 10px;background:linear-gradient(transparent,rgba(0,0,0,.9));font:800 15px/1.15 system-ui}
+  .mcar .m b small{display:block;font:500 10px system-ui;opacity:.75;margin-top:2px}
+  @keyframes mdrift{from{transform:translateX(0)}to{transform:translateX(150px)}}
+  .sheet{position:absolute;inset-inline:0;bottom:0;background:#f2ede4;color:#0a0a0a;border-radius:22px 22px 0 0;padding:14px 16px 22px;transform:translateY(100%);animation:sh 8s ease-in-out infinite}
+  @keyframes sh{0%,50%{transform:translateY(100%)}60%,92%{transform:translateY(0)}100%{transform:translateY(100%)}}
+  .grab{width:38px;height:4px;border-radius:3px;background:#bbb;margin:0 auto 10px}
+  /* shows */
+  .ticket{margin:0 14px;border:1px solid #333;border-radius:16px;overflow:hidden;display:flex;background:#141414}
+  .ticket .d{background:#f96949;color:#0a0a0a;padding:10px 12px;text-align:center;font:800 11px/1 system-ui;display:flex;flex-direction:column;justify-content:center}
+  .ticket .d b{font-size:26px;display:block;margin:2px 0}
+  .rows{height:228px;overflow:hidden;margin:0 14px;border-radius:12px;background:#111;position:relative}
+  .rows-in{animation:rs 10s ease-in-out infinite alternate}
+  @keyframes rs{from{transform:translateY(0)}to{transform:translateY(-150px)}}
+  .r{display:flex;justify-content:space-between;align-items:baseline;padding:9px 12px;border-bottom:1px solid #222;font-size:12px}
+  .r small{opacity:.55;font-size:10px;font-family:ui-monospace,monospace}
+  .fade{position:absolute;left:0;right:0;height:26px;pointer-events:none}
+  .strip{display:flex;gap:7px;direction:ltr;margin-top:8px;padding-inline:14px}
+  .strip div{flex:0 0 64px;height:86px;border-radius:8px;background-size:cover;background-position:center}
+  .notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-top:6px}
+  .note{background:var(--bg-secondary,#f5f5f7);border-radius:10px;padding:14px 16px}
+  .note h4{margin:0 0 6px;font-size:15px}.note p,.note li{margin:0;font-size:13.5px;line-height:1.5}
+  .note ul{margin:0;padding-inline-start:18px}
+</style>
+
+<h2>A more dynamic look: "Stage Lights" (mobile first)</h2>
+<p class="subtitle">Same content, same black and orange identity. What changes is how it moves and how long it is. Today the phone page is about 21 screens tall (17,370 px, measured). The swipe rows and short panels should cut that roughly in half (my estimate). The previews below are phone sized and the motion is real, so give them a few seconds.</p>
+
+<div class="ph-row">
+
+  <div class="ph">
+    <p class="ph-cap">1 · Opening<small>animated logo stays, add a "next show" pill and a sticky action bar</small></p>
+    <div class="scr">
+      <div class="hero-bg"></div><div class="scrim"></div>
+      <div style="position:absolute;top:14px;inset-inline:14px;display:flex;justify-content:space-between;align-items:center"><span class="chip on" style="margin:0">EN</span><span class="cap">STARDUST</span></div>
+      <div style="position:absolute;top:150px;inset-inline:0;text-align:center"><img src="files/logo.png" style="width:210px;mix-blend-mode:screen" alt=""></div>
+      <div style="position:absolute;top:290px;inset-inline:0;text-align:center"><div class="h org" style="font-size:19px;letter-spacing:.02em">מחווה לדיוויד בואי</div><div style="font-size:11.5px;opacity:.8;margin-top:6px;padding:0 24px">מסע מוזיקלי ותרבותי חי דרך המורשת של דיוויד בואי</div></div>
+      <div style="position:absolute;top:372px;inset-inline:0;text-align:center"><span class="chip" style="margin:0;border-color:#4dff88;color:#4dff88">● ההופעה הבאה · 7.11 · הוד השרון</span></div>
+      <div class="tick" style="top:432px"><span>STARDUST ✦ DAVID BOWIE TRIBUTE ✦ LIVE ✦ STARDUST ✦ DAVID BOWIE TRIBUTE ✦ LIVE ✦ </span><span>STARDUST ✦ DAVID BOWIE TRIBUTE ✦ LIVE ✦ STARDUST ✦ DAVID BOWIE TRIBUTE ✦ LIVE ✦ </span></div>
+      <div style="position:absolute;bottom:0;inset-inline:0;padding:12px 14px 16px;background:linear-gradient(transparent,#0a0a0a 40%);display:flex;gap:8px"><span class="btn" style="flex:1">דברו איתנו בוואטסאפ</span><span class="btn" style="flex:0 0 52px;background:transparent;border:1px solid #444;color:#f2ede4">▶</span></div>
+    </div>
+  </div>
+
+  <div class="ph">
+    <p class="ph-cap">2 · Photos<small>swipe gallery. Tap a photo and it opens full screen</small></p>
+    <div class="scr">
+      <div style="padding:22px 16px 0"><div class="h">דיוויד בואי</div><div class="cap" style="margin-top:6px">המוזיקה. האדם. הסיפור</div></div>
+      <div class="car">
+        <div style="background-image:url(files/g05.jpg)"></div>
+        <div style="background-image:url(files/g02.jpg)"></div>
+        <div style="background-image:url(files/g03.jpg)"></div>
+        <div style="background-image:url(files/g04.jpg)"></div>
+        <div style="background-image:url(files/g07.jpg)"></div>
+      </div>
+      <div style="position:absolute;top:436px;inset-inline:16px;font-size:11.5px;line-height:1.5;opacity:.8">סטארדאסט הוא מופע מחווה לדיוויד בואי של שישה מוזיקאים ישראלים…<span class="org"> קראו עוד ▾</span></div>
+      <div class="dots"><i></i><i></i><i></i><i></i></div>
+      <div class="lb"><div class="pic"></div><span style="position:absolute;top:16px;inset-inline-start:16px;font-size:20px">✕</span></div>
+    </div>
+  </div>
+
+  <div class="ph">
+    <p class="ph-cap">3 · The band<small>6 cards in a swipe row (5 screens become 1). Tap a card for the bio</small></p>
+    <div class="scr">
+      <div style="padding:22px 16px 0"><div class="h">הלהקה</div><div class="cap" style="margin-top:6px">שישה מוזיקאים · החליקו</div></div>
+      <div class="mcar">
+        <div class="m" style="background-image:url(files/roi-isak.jpg)"><b>רועי איסק<small>שירה וכלי הקשה</small></b></div>
+        <div class="m" style="background-image:url(files/guy-wittenberg.jpg)"><b>גיא ויטנברג<small>סקסופון, כינור</small></b></div>
+        <div class="m" style="background-image:url(files/gil-idan.jpg)"><b>גיל אידן<small>תופים</small></b></div>
+        <div class="m" style="background-image:url(files/ron-yona.jpg)"><b>רון יונה<small>גיטרה</small></b></div>
+      </div>
+      <div class="dots" style="bottom:130px"><i></i><i></i><i></i><i></i></div>
+      <div class="sheet"><div class="grab"></div><div style="font:800 17px system-ui">רועי איסק</div><div class="cap" style="color:#555;margin:2px 0 8px">שירה וכלי הקשה</div><div style="font-size:12px;line-height:1.5;color:#333">מגיע לסטארדאסט עם שנים של עשייה מוזיקלית ועם חיבור עמוק לקצב ולמוזיקה ממסורות שונות. בעבר היה חבר בלהקת עלילה…</div></div>
+    </div>
+  </div>
+
+  <div class="ph">
+    <p class="ph-cap">4 · Shows<small>next show as a ticket. Past shows in a short scrolling panel, not 36 rows</small></p>
+    <div class="scr">
+      <div style="padding:22px 16px 10px"><div class="h">המופעים הבאים</div></div>
+      <div class="ticket"><div class="d">NOV<b>07</b>2026</div><div style="padding:11px 12px;flex:1"><div style="font:800 13px/1.2 system-ui">פסטיבל לונדון | הדוב הירוק</div><div class="cap" style="margin:3px 0 8px">הוד השרון</div><span class="btn" style="padding:6px;font-size:11px">כרטיסים</span></div></div>
+      <div style="padding:16px 16px 8px"><div class="h" style="font-size:16px">מבחר מופעים קודמים</div></div>
+      <div style="padding:0 14px 8px;white-space:nowrap;overflow:hidden"><span class="chip on" style="margin:0 0 0 6px">הכל</span><span class="chip">2026</span><span class="chip">2025</span><span class="chip">2024</span></div>
+      <div class="rows"><div class="fade" style="top:0;background:linear-gradient(#111,transparent);z-index:2"></div><div class="rows-in">
+        <div class="r"><span>האיזור</span><small>08.08.26 · תל אביב</small></div>
+        <div class="r"><span>בלה צ'או</span><small>24.07.26 · ראשון לציון</small></div>
+        <div class="r"><span>Babity Pub</span><small>14.02.26 · כפר סבא</small></div>
+        <div class="r"><span>בר גיורא</span><small>13.12.25 · תל אביב</small></div>
+        <div class="r"><span>בית המרזח</span><small>08.10.25 · רמת ישי</small></div>
+        <div class="r"><span>קיבוץ משמרות</span><small>11.09.25 · משמרות</small></div>
+        <div class="r"><span>ההוביט</span><small>02.09.25 · זכרון יעקב</small></div>
+        <div class="r"><span>Tassa</span><small>19.02.25 · תל אביב</small></div>
+        <div class="r"><span>בית המרזח</span><small>23.11.24 · רמת ישי</small></div>
+        <div class="r"><span>באBE</span><small>19.11.24 · הוד השרון</small></div>
+      </div><div class="fade" style="bottom:0;background:linear-gradient(transparent,#111)"></div></div>
+      <div class="strip"><div style="background-image:url(files/p-bar-giyora-stardust.jpg)"></div><div style="background-image:url(files/p-tassa.jpg)"></div><div style="background-image:url(files/p-hobbit-bar.jpg)"></div><div style="background-image:url(files/p-beit-hamarzeach.jpg)"></div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="section">
+  <h3>What you'd feel</h3>
+  <div class="notes">
+    <div class="note"><h4>Subtle motion</h4><ul><li>Slow zoom on the opening photo</li><li>A running ticker line in the brand orange</li><li>Photos and cards slide in as you reach them</li><li>The black and white photos turn to colour as they scroll into view (phones have no hover)</li><li>Everything switches off for people who ask their phone for reduced motion</li></ul></div>
+    <div class="note"><h4>Photos that open up</h4><ul><li>One tap opens a photo full screen</li><li>Swipe between photos, pinch to zoom</li><li>The same for the show posters</li></ul></div>
+    <div class="note"><h4>No endless lists</h4><ul><li>Past shows sit in a short panel that scrolls on its own, with year chips on top</li><li>The band is a swipe row and each bio opens in a sheet</li><li>The "Who was Bowie?" blank stretch becomes a swipe strip of eras</li></ul></div>
+    <div class="note"><h4>Same content</h4><ul><li>All the text, both languages, stays</li><li>Hebrew first, right to left</li><li>The WhatsApp button stays pinned at the bottom</li><li>Same SEO and page speed rules as today</li></ul></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>One choice I'd like from you: how should past shows look?</h3>
+  <p class="subtitle">Panel 4 above shows option A.</p>
+  <div class="options">
+    <div class="option" data-choice="A-panel" onclick="toggleSelect(this)"><div class="letter">A</div><div class="content"><h3>Short scrolling panel with year chips</h3><p>All 36 shows stay, in a panel about 6 rows tall. Tap a year to filter. Quiet and clean.</p></div></div>
+    <div class="option" data-choice="B-posters" onclick="toggleSelect(this)"><div class="letter">B</div><div class="content"><h3>Poster wall first, list tucked under "all shows"</h3><p>The 11 real posters become a swipe row that opens full screen. The list opens only if someone taps "all shows". Most visual.</p></div></div>
+    <div class="option" data-choice="C-both" onclick="toggleSelect(this)"><div class="letter">C</div><div class="content"><h3>Both: posters on top, panel below</h3><p>The poster swipe row, then the year chips and the short panel under it. Most complete, slightly longer.</p></div></div>
+  </div>
+</div>
