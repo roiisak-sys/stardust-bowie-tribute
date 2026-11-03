@@ -13,6 +13,8 @@ interface Props {
   pill?: { label: string; text: string; href: string } | null;
 }
 const { subtitle, tribute, descriptor, pill = null } = Astro.props;
+// The brand is the part of the subtitle before the comma ("סטארדאסט", "Stardust").
+const brand = subtitle.split(',')[0].trim();
 ---
 
 <section id="hero" class="hero has-grain">
@@ -46,13 +48,10 @@ const { subtitle, tribute, descriptor, pill = null } = Astro.props;
       aria-hidden="true"
       tabindex="-1"
     ></video>
-    <!-- The H1 carries the real text (the keyword phrase); the animated logo
-         above is decoration for the eye. -->
-    <h1 class="hero__logo-wrap">
-      <span class="hero__h1-text">{subtitle}</span>
-    </h1>
   </div>
-  <p class="hero__tribute" data-hero-tribute>{tribute}</p>
+  <!-- The H1 is the visible tribute line; the brand, which the animated logo
+       shows only as a picture, is read out in front of it. -->
+  <h1 class="hero__tribute" data-hero-tribute><span class="hero__h1-text">{brand}: </span>{tribute}</h1>
   <p class="hero__descriptor" data-hero-descriptor>{descriptor}</p>
   {pill && <a class="hero__pill" href={pill.href}>● {pill.label} · {pill.text}</a>}
   <Ticker text="STARDUST ✦ DAVID BOWIE TRIBUTE ✦ LIVE ✦" />
@@ -122,11 +121,6 @@ const { subtitle, tribute, descriptor, pill = null } = Astro.props;
     aspect-ratio: 3.37 / 1;
     margin: 0 0 var(--space-md);
     direction: ltr;
-  }
-
-  .hero__logo-wrap {
-    margin: 0;
-    line-height: 0;
   }
 
   /* Visually hidden, still read by search engines and screen readers. */

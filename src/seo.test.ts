@@ -61,7 +61,14 @@ for (const p of pages) {
       const h1 = html().match(/<h1[^>]*>([\s\S]*?)<\/h1>/)![1];
       const text = h1.replace(/<[^>]+>/g, '').trim();
       expect(text.length).toBeGreaterThan(10);
-      expect(text).toMatch(/Bowie|בואי/);
+      expect(text).toMatch(/Bowie|BOWIE|בואי/);
+    });
+
+    it('makes the visible tribute line the H1, with the brand read out in front of it', () => {
+      const h1 = html().match(/<h1[^>]*>([\s\S]*?)<\/h1>/)![0];
+      expect(h1).toContain('data-hero-tribute');
+      expect(h1).toMatch(/hero__h1-text/);
+      expect(h1.replace(/<[^>]+>/g, '')).toMatch(/Stardust|סטארדאסט/i);
     });
 
     it('has no em or en dashes in the title, description or visible copy', () => {
