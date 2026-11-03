@@ -36,7 +36,7 @@ What changed:
 
 1. Click-to-load video facade (7371d49): a local WebP poster (`/assets/video/showreel-poster.webp`, 896x504) with a play button replaces the always-loaded YouTube iframe. A click swaps in the same `youtube-nocookie.com` iframe with autoplay; without JS the poster is a plain link to the YouTube watch page. Alone this moved 62 to 70-73.
 2. Defer off-screen images (b14273c): every gallery and poster image is `loading="lazy"` (the first two of each had been eager, which put Medium-priority image weight into the simulated LCP graph; this was the biggest single step, 72 to 87); `content-visibility: auto` on the band, Bowie eras, upcoming, past shows, watch, explore and final sections so their lazy images wait until the section nears the viewport (54 to 38 requests before LCP); swipe rows set up their dots and arrows only when they near the viewport instead of all measuring layout on load (TBT about 150 ms to about 0).
-3. Fix round (13d135e): the `content-visibility` size estimates now live in `src/styles/section-size.css`, fitted to measured heights at 320-1920 px in both languages (drift within 6% at every width measured, it had been up to 54% at tablet widths); the player iframe style no longer depends on Astro scoping.
+3. Fix round (13d135e, then 9a30110 for the player injection and the alts): the `content-visibility` size estimates now live in `src/styles/section-size.css`, fitted to measured heights at 320-1920 px in both languages (drift within 6% at every width measured, it had been up to 54% at tablet widths); the player iframe style no longer depends on Astro scoping.
 
 Intermediate three-run sets (performance, same method):
 
@@ -71,6 +71,16 @@ After the fix round (13d135e), same method:
 | G, interleaved with b14273c (prior commit: 90 / 88 / 90 / 90) | 90 / 90 / 90 / 90 |
 
 Median of those 10 runs is 90. The machine was in a slower state during this round (Speed Index about 3.5 s, FCP about 1.1 s, against 1.8 s and 0.92 s in batch D), and the previous commit scored the same 88-90 in the same interleaved batch, so the fix round did not change the score: it fixes the player layout and the scroll-height estimates.
+
+After fix round 2 (9a30110: the video iframe is injected, without autoplay, when the `#watch` frame comes within 600 px of the viewport, so the page keeps an on-page video for crawlers; a click before that still loads it with autoplay; the descriptive era and band alts are restored). Lighthouse does not scroll, so no YouTube request is made in any of these runs (0 of 40 requests; the two extra requests against 38 are the two small script modules for the player logic):
+
+| Batch | Runs |
+|-------|------|
+| H | 75 / 87 / 89 (the 75 had LCP 5.8 s; an outlier, not reproduced) |
+| I, interleaved with the previous commit 87d9b1c | 90 / 90 / 89 / 90 |
+| previous commit 87d9b1c, same interleaved batch | 90 / 92 / 89 / 90 |
+
+The change is level with the previous commit within noise (89-92 against 89-92 in the same batch).
 
 Lab noise on this machine is large: the same build scored from 71 to 92, and total blocking time alone swings between 0 and about 1,200 ms from run to run. Expect 88-92 for the new site, the same band as the old one. Observed (unthrottled) FCP and LCP did not change at any point in this work; what moved from 62 to the high 80s/low 90s is Lighthouse's simulated score, because the lazy iframe and eager images no longer appear in the request graph before LCP. The hero (LCP element, a 563 KB logo animation with a poster) is untouched and is what keeps simulated LCP at about 3.4 s (LCP score 0.67), so 92 is near the ceiling for this page without changing the hero.
 
