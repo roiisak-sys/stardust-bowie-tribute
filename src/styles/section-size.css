@@ -5,7 +5,7 @@
  * estimate of its content height (the section padding comes on top; `auto`
  * then remembers the real size once it has rendered). The estimates are
  * straight-line fits of the real rendered heights, measured at 320-1920px wide
- * in Hebrew and English, and stay within 6% of the real height at every width
+ * in Hebrew and English, and stay within about 8% of the real height at every width
  * measured. Breakpoints: 700px and 1000px (the layout ones), 1280px (where the
  * layouts stop growing) and, for the explore grid, 525px (where its columns
  * change). English text is longer, so a few sections have English values
