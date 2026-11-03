@@ -1241,3 +1241,100 @@ describe('Task 9b — carried review fixes', () => {
     });
   });
 });
+
+describe('Task 10b — click-to-load video facade', () => {
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+  const src = (rel: string) => readFileSync(join(ROOT, rel), 'utf-8');
+  const ID = 'fPsdsE5sYtk';
+  const pages = ['he/index.html', 'en/index.html', 'index.html'];
+
+  for (const rel of pages) {
+    describe(rel, () => {
+      const html = read(rel);
+      const watch = html.slice(html.indexOf('id="watch"'), html.indexOf('</section>', html.indexOf('id="watch"')));
+
+      it('has no iframe and no YouTube player URL in the initial HTML (no third-party load)', () => {
+        expect(html).not.toMatch(/<iframe/i);
+        // The click script (inlined by Astro) names the embed host, but no element may point at it.
+        expect(html).not.toMatch(/(?:src|href)="https:\/\/www\.youtube-nocookie\.com/);
+        expect(watch).not.toContain('<iframe');
+      });
+
+      it('keeps the #watch section, its heading and the aspect-ratio frame with reveal', () => {
+        expect(html).toMatch(/<section[^>]*id="watch"/);
+        expect(watch).toMatch(/<h2[^>]*class="watch__heading"/);
+        expect(watch).toMatch(/<div[^>]*class="watch__frame"[^>]*data-reveal/);
+      });
+
+      it('shows a local WebP poster with real src, size attributes and decorative alt', () => {
+        const img = watch.match(/<img[^>]*class="watch__poster"[^>]*>/)![0];
+        expect(img).toMatch(/src="\/assets\/video\/showreel-poster\.webp"/);
+        expect(img).toMatch(/width="\d+"/);
+        expect(img).toMatch(/height="\d+"/);
+        expect(img).toMatch(/alt=""/);
+        expect(img).not.toContain('data-src');
+        expect(existsSync(join(DIST, 'assets/video/showreel-poster.webp'))).toBe(true);
+      });
+
+      it('has a plain link to the YouTube watch page as the no-JS fallback', () => {
+        const a = watch.match(/<a[^>]*class="[^"]*watch__facade--link[^"]*"[^>]*>/)![0];
+        expect(a).toContain(`href="https://www.youtube.com/watch?v=${ID}"`);
+        expect(a).toMatch(/aria-label="[^"]+"/);
+        expect(a).toContain('rel="noopener noreferrer"');
+      });
+
+      it('has a real <button type="button"> with an accessible name for the JS path', () => {
+        const b = watch.match(/<button[^>]*class="[^"]*watch__facade--button[^"]*"[^>]*>/)![0];
+        expect(b).toContain('type="button"');
+        expect(b).toMatch(/aria-label="[^"]+"/);
+      });
+
+      it('carries the id, iframe title and allow list for the click handler', () => {
+        const frame = watch.match(/<div[^>]*class="watch__frame"[^>]*>/)![0];
+        expect(frame).toContain(`data-video-id="${ID}"`);
+        expect(frame).toContain('data-video-title="Stardust, David Bowie Tribute Show"');
+        expect(frame).toMatch(/data-video-allow="[^"]*autoplay[^"]*picture-in-picture"/);
+      });
+
+      it('the action bar play button still just jumps to #watch', () => {
+        expect(html).toMatch(/class="action-bar__play"[^>]*href="#watch"|href="#watch"[^>]*class="action-bar__play"/);
+      });
+    });
+  }
+
+  describe('component source', () => {
+    const script = src('src/components/WatchVideo.astro').match(/<script>([\s\S]*?)<\/script>/)![1];
+
+    it('the click script builds the nocookie embed with autoplay=1, title, allow and fullscreen', () => {
+      expect(script).toContain('youtube-nocookie.com/embed/');
+      expect(script).toContain('autoplay=1');
+      expect(script).toContain('createElement(\'iframe\')');
+      expect(script).toContain('iframe.title');
+      expect(script).toContain('iframe.allow');
+      expect(script).toContain('allowFullscreen');
+    });
+
+    it('moves focus to the player after the swap', () => {
+      expect(script).toContain('iframe.focus()');
+    });
+
+    it('shows the button only with JS and hides the link then (the .js class comes from the head script)', () => {
+      const css = cssOf('src/components/WatchVideo.astro').replace(/\/\*[\s\S]*?\*\//g, '');
+      expect(css).toMatch(/\.watch__facade--button\s*\{\s*display:\s*none/);
+      expect(css).toMatch(/:global\(\.js\)\s+\.watch__facade--link\s*\{\s*display:\s*none/);
+      expect(css).toMatch(/:global\(\.js\)\s+\.watch__facade--button\s*\{\s*display:\s*flex/);
+    });
+  });
+
+  it('the VideoObject keeps its embedUrl and thumbnail', () => {
+    const html = read('he/index.html');
+    const graph = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)![1])['@graph'] as any[];
+    const video = graph.find((n) => n['@type'] === 'VideoObject');
+    expect(video.embedUrl).toBe(`https://www.youtube.com/embed/${ID}`);
+    expect(video.thumbnailUrl).toContain(ID);
+  });
+});

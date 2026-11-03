@@ -1,23 +1,70 @@
 ---
+// Showreel section. The YouTube player is NOT in the initial HTML: its ~1 MB of
+// third-party JS used to load with the page and wrecked the Lighthouse score.
+// Instead a poster (local WebP) with a play control is shown; a click swaps in
+// the youtube-nocookie iframe with autoplay. Without JS the poster is a plain
+// link to the YouTube watch page, so the video stays reachable.
+import { imageSize } from '../lib/image-size';
+
 interface Props {
   heading: string;
   youtubeId: string;
+  playLabel: string;
 }
-const { heading, youtubeId } = Astro.props;
+const { heading, youtubeId, playLabel } = Astro.props;
+
+const title = 'Stardust, David Bowie Tribute Show';
+const allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+const poster = '/assets/video/showreel-poster.webp';
+const { width, height } = await imageSize(poster);
+const watchUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
 ---
 
 <section id="watch" class="watch has-grain">
   <h2 class="watch__heading" data-reveal>{heading}</h2>
-  <div class="watch__frame" data-reveal style="--reveal-delay: 120ms">
-    <iframe
-      src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
-      title="Stardust, David Bowie Tribute Show"
-      loading="lazy"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen
-    ></iframe>
+  <div
+    class="watch__frame"
+    data-reveal
+    style="--reveal-delay: 120ms"
+    data-video-id={youtubeId}
+    data-video-title={title}
+    data-video-allow={allow}
+  >
+    <img class="watch__poster" src={poster} width={width} height={height} alt="" loading="lazy" decoding="async" />
+    <a class="watch__facade watch__facade--link" href={watchUrl} target="_blank" rel="noopener noreferrer" aria-label={`${playLabel}: ${title}`}>
+      <span class="watch__play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" focusable="false"><path d="M8 5.5v13l11-6.5z"></path></svg>
+      </span>
+    </a>
+    <button class="watch__facade watch__facade--button" type="button" aria-label={`${playLabel}: ${title}`}>
+      <span class="watch__play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" focusable="false"><path d="M8 5.5v13l11-6.5z"></path></svg>
+      </span>
+    </button>
   </div>
 </section>
+
+<script>
+  // Click-to-load: replace the facade with the real player and start it.
+  document.querySelectorAll<HTMLElement>('.watch__frame[data-video-id]').forEach((frame) => {
+    const button = frame.querySelector<HTMLButtonElement>('.watch__facade--button');
+    if (!button) return;
+    button.addEventListener(
+      'click',
+      () => {
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube-nocookie.com/embed/${frame.dataset.videoId}?autoplay=1`;
+        iframe.title = frame.dataset.videoTitle ?? '';
+        iframe.allow = frame.dataset.videoAllow ?? '';
+        iframe.allowFullscreen = true;
+        frame.replaceChildren(iframe);
+        frame.classList.add('is-playing');
+        iframe.focus();
+      },
+      { once: true },
+    );
+  });
+</script>
 
 <style>
   .watch {
@@ -48,5 +95,73 @@ const { heading, youtubeId } = Astro.props;
     inline-size: 100%;
     block-size: 100%;
     border: 0;
+  }
+
+  .watch__poster {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /* Both controls cover the poster. The link is the no-JS fallback, the
+     button replaces it once JS runs (the inline head script adds .js). */
+  .watch__facade {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 100%;
+    block-size: 100%;
+    padding: 0;
+    border: 0;
+    background: linear-gradient(180deg, rgba(10, 10, 10, 0.1) 0%, rgba(10, 10, 10, 0.45) 100%);
+    color: var(--color-off-white);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .watch__facade--button {
+    display: none;
+  }
+
+  :global(.js) .watch__facade--link {
+    display: none;
+  }
+
+  :global(.js) .watch__facade--button {
+    display: flex;
+  }
+
+  .watch__play {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 4.5rem;
+    block-size: 4.5rem;
+    border-radius: 50%;
+    border: 2px solid var(--color-off-white);
+    background: rgba(10, 10, 10, 0.6);
+  }
+
+  .watch__facade:hover .watch__play {
+    border-color: var(--color-accent-orange);
+    color: var(--color-accent-orange);
+  }
+
+  .watch__facade:focus-visible {
+    outline: 3px solid var(--color-off-white);
+    outline-offset: -6px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .watch__play {
+      transition: transform 0.2s var(--ease-editorial), border-color 0.2s, color 0.2s;
+    }
+    .watch__facade:hover .watch__play {
+      transform: scale(1.08);
+    }
   }
 </style>
