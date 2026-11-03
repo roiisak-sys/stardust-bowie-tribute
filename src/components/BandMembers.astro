@@ -19,8 +19,10 @@ interface Props {
   members: Member[];
   /** Accessible name of the close button on the bio sheet (copy.ui.bandSheetClose). */
   closeLabel: string;
+  prevLabel: string;
+  nextLabel: string;
 }
-const { locale, statement, members, closeLabel } = Astro.props;
+const { locale, statement, members, closeLabel, prevLabel, nextLabel } = Astro.props;
 
 const sizes = await Promise.all(members.map((m) => imageSize(m.photo)));
 const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
@@ -29,7 +31,7 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
 <section id="band" class="band has-grain">
   <p class="band__statement">{statement}</p>
 
-  <SwipeRow label={rowLabel}>
+  <SwipeRow label={rowLabel} prevLabel={prevLabel} nextLabel={nextLabel}>
     {members.map((m, i) => (
       <article class="band__card" data-swipe-item data-reveal style={`--reveal-delay: ${Math.min(i, 3) * 80}ms`}>
         <button type="button" class="band__open">
@@ -70,14 +72,10 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
   .band {
     --swipe-item: 72%;
     --swipe-gap: var(--space-sm);
+    --swipe-gutter: var(--space-md);
     background: var(--color-black);
     color: var(--color-off-white);
     padding-block: var(--space-xl);
-  }
-
-  /* SwipeRow sets its own gutter on .swipe, so a parent value would not reach it. */
-  .band :global(.swipe) {
-    --swipe-gutter: var(--space-md);
   }
 
   .band__statement {
@@ -196,9 +194,10 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
     }
   }
 
+  /* Exactly four per view: a quarter of the room left after three gaps. */
   @media (min-width: 1000px) {
     .band {
-      --swipe-item: 26%;
+      --swipe-item: calc((100% - 3 * var(--swipe-gap)) / 4);
     }
   }
 

@@ -13,8 +13,10 @@ interface Props {
   fragments: string[];
   eras: Era[];
   enlargeLabel: string;
+  prevLabel: string;
+  nextLabel: string;
 }
-const { locale, heading, fragments, eras, enlargeLabel } = Astro.props;
+const { locale, heading, fragments, eras, enlargeLabel, prevLabel, nextLabel } = Astro.props;
 
 const captionOf = (name: string) => (locale === 'he' ? `דיוויד בואי, ${name}` : `David Bowie, ${name}`);
 const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
@@ -33,7 +35,7 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
   <h2 class="collage__heading">{heading}</h2>
   <p class="collage__fragments">{fragments.join(' · ')}</p>
 
-  <SwipeRow label={heading}>
+  <SwipeRow label={heading} prevLabel={prevLabel} nextLabel={nextLabel}>
     {eras.map((era, i) => (
       <div class={`collage__card collage__card--${i}`} data-swipe-item data-reveal>
         <button
@@ -64,7 +66,6 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
   .collage {
     --swipe-item: 62%;
     --swipe-gap: var(--space-xs);
-    --swipe-gutter: var(--space-md);
     background: var(--color-black);
     /* Top padding intentionally smaller than the bottom: the wordmark is
        the very first thing after the full-height Hero, and --space-xl
@@ -154,6 +155,13 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
   @media (min-width: 700px) {
     .collage {
       --swipe-item: 34%;
+    }
+  }
+
+  /* Exactly four per view: a quarter of the room left after three gaps. */
+  @media (min-width: 1000px) {
+    .collage {
+      --swipe-item: calc((100% - 3 * var(--swipe-gap)) / 4);
     }
   }
 </style>

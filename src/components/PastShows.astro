@@ -12,8 +12,11 @@ interface Props {
   allShowsLabel: string;
   hideShowsLabel: string;
   allYearsLabel: string;
+  prevLabel: string;
+  nextLabel: string;
 }
-const { locale, heading, shows, enlargeLabel, allShowsLabel, hideShowsLabel, allYearsLabel } = Astro.props;
+const { locale, heading, shows, enlargeLabel, allShowsLabel, hideShowsLabel, allYearsLabel, prevLabel, nextLabel } =
+  Astro.props;
 
 const past = shows.filter((s) => s.status === 'past');
 const years = pastYears(shows);
@@ -51,7 +54,7 @@ function formatDate(iso: string, locale: 'he' | 'en') {
 <section id="past-shows" class="past has-grain">
   <h2 class="past__heading">{heading}</h2>
 
-  <SwipeRow label={heading}>
+  <SwipeRow label={heading} prevLabel={prevLabel} nextLabel={nextLabel}>
     {posters.map((p, i) => (
       <div class="past__poster" data-swipe-item>
         <button
@@ -113,14 +116,9 @@ function formatDate(iso: string, locale: 'he' | 'en') {
   .past {
     --swipe-item: 72%;
     --swipe-gap: var(--space-xs);
+    --swipe-gutter: var(--space-md);
     background: var(--color-black);
     padding-block: var(--space-xl);
-  }
-
-  .past :global(.swipe) {
-    --swipe-gutter: var(--space-md);
-    max-inline-size: 64rem;
-    margin-inline: auto;
   }
 
   /* Posters differ in shape (square and wide): centre them on the track and let
@@ -266,6 +264,13 @@ function formatDate(iso: string, locale: 'he' | 'en') {
   @media (min-width: 700px) {
     .past {
       --swipe-item: 34%;
+    }
+  }
+
+  /* Exactly five per view: a fifth of the room left after four gaps. */
+  @media (min-width: 1000px) {
+    .past {
+      --swipe-item: calc((100% - 4 * var(--swipe-gap)) / 5);
     }
   }
 </style>

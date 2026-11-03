@@ -40,21 +40,21 @@ const socialLinks = [
 ---
 
 <section id="final-scene" class="final has-grain">
-  <p class="final__line1" data-final-line>{line1}</p>
-  <p class="final__line2" data-final-line>{line2}</p>
+  <p class="final__line1" data-reveal>{line1}</p>
+  <p class="final__line2" data-reveal style="--reveal-delay: 120ms">{line2}</p>
 
-  <h2 class="final__contact-heading" data-final-line>{contactHeading}</h2>
-  <div class="final__ctas">
-    <a class="final__cta" href={whatsappHref} target="_blank" rel="noopener noreferrer" data-final-cta>
+  <h2 class="final__contact-heading" data-reveal>{contactHeading}</h2>
+  <div class="final__ctas" data-reveal style="--reveal-delay: 120ms">
+    <a class="final__cta" href={whatsappHref} target="_blank" rel="noopener noreferrer">
       {whatsappCta}
     </a>
-    <a class="final__cta final__cta--secondary" href={telHref} data-final-cta>
+    <a class="final__cta final__cta--secondary" href={telHref}>
       {callCta} · {phoneDisplay}
     </a>
   </div>
 
   {socialLinks.length > 0 && (
-    <div class="final__social" data-final-line>
+    <div class="final__social" data-reveal style="--reveal-delay: 200ms">
       {socialLinks.map((s) => (
         <a href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.label} class="final__social-link">
           <SocialIcon name={s.icon} size={32} />
@@ -71,36 +71,24 @@ const socialLinks = [
     loading="lazy"
     decoding="async"
     class="final__logo"
-    data-final-line
+    data-reveal
+    style="--reveal-delay: 120ms"
   />
 
-  <p class="final__copyright" data-final-line>{copyright}</p>
-
-  <noscript>
-    <style is:global>
-      #final-scene .final__line1,
-      #final-scene .final__line2,
-      #final-scene .final__contact-heading,
-      #final-scene .final__ctas,
-      #final-scene .final__social,
-      #final-scene .final__logo,
-      #final-scene .final__copyright {
-        opacity: 1 !important;
-      }
-    </style>
-  </noscript>
+  <p class="final__copyright" data-reveal style="--reveal-delay: 200ms">{copyright}</p>
 </section>
 
 <style>
   .final {
-    min-height: 100vh;
+    min-block-size: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: var(--space-md);
     background: var(--color-black);
-    padding: var(--space-xl) var(--space-md);
+    padding-block: var(--space-xl);
+    padding-inline: var(--space-md);
     text-align: center;
   }
 
@@ -110,15 +98,13 @@ const socialLinks = [
     font-weight: 800;
     font-size: var(--size-display-md);
     margin: 0;
-    opacity: 0;
   }
 
   .final__contact-heading {
     font-family: var(--font-display);
     font-weight: 800;
     font-size: var(--size-display-lg);
-    margin: var(--space-xl) 0 0;
-    opacity: 0;
+    margin-block: var(--space-xl) 0;
   }
 
   .final__ctas {
@@ -127,7 +113,7 @@ const socialLinks = [
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
-    margin-top: var(--space-md);
+    margin-block-start: var(--space-md);
   }
 
   .final__cta {
@@ -137,9 +123,9 @@ const socialLinks = [
     letter-spacing: 0.08em;
     color: var(--color-black);
     background: var(--color-accent-green);
-    padding: var(--space-sm) var(--space-lg);
+    padding-block: var(--space-sm);
+    padding-inline: var(--space-lg);
     text-decoration: none;
-    opacity: 0;
   }
 
   /* Call CTA reads as secondary next to WhatsApp: outline instead of a
@@ -153,8 +139,7 @@ const socialLinks = [
   .final__social {
     display: flex;
     gap: var(--space-sm);
-    margin-top: var(--space-lg);
-    opacity: 0;
+    margin-block-start: var(--space-lg);
   }
 
   /* Icon bumped to 32px (up from 26px) and the touch target to 48px to
@@ -163,8 +148,8 @@ const socialLinks = [
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 48px;
-    min-height: 48px;
+    min-inline-size: 48px;
+    min-block-size: 48px;
     color: var(--color-off-white);
     opacity: 0.7;
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -177,63 +162,22 @@ const socialLinks = [
   }
 
   .final__logo {
-    margin-top: var(--space-xl);
-    width: 160px;
-    height: auto;
-    opacity: 0;
+    margin-block-start: var(--space-xl);
+    inline-size: 160px;
+    block-size: auto;
   }
 
   .final__copyright {
-    margin-top: var(--space-md);
+    margin-block-start: var(--space-md);
     font-family: var(--font-mono);
     font-size: var(--size-label);
     letter-spacing: 0.04em;
     color: var(--color-off-white);
-    opacity: 0;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .final__line1,
-    .final__line2,
-    .final__contact-heading,
-    .final__cta,
-    .final__social,
-    .final__logo,
-    .final__copyright {
-      opacity: 1;
-    }
     .final__social-link {
       transition: none;
     }
   }
 </style>
-
-<script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { prefersReducedMotion } from '../scripts/reduced-motion';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  const targets = [
-    ...(gsap.utils.toArray('[data-final-line]') as HTMLElement[]),
-    ...(gsap.utils.toArray('[data-final-cta]') as HTMLElement[]),
-  ];
-
-  if (!prefersReducedMotion()) {
-    gsap.to(targets, {
-      opacity: 1,
-      duration: 0.8,
-      stagger: 0.4,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: '#final-scene',
-        start: 'top 60%',
-      },
-    });
-
-    if ('fonts' in document) {
-      document.fonts.ready.then(() => ScrollTrigger.refresh());
-    }
-  }
-</script>

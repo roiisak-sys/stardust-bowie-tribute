@@ -7,8 +7,8 @@ const { heading, youtubeId } = Astro.props;
 ---
 
 <section id="watch" class="watch has-grain">
-  <h2 class="watch__heading">{heading}</h2>
-  <div class="watch__frame">
+  <h2 class="watch__heading" data-reveal>{heading}</h2>
+  <div class="watch__frame" data-reveal style="--reveal-delay: 120ms">
     <iframe
       src={`https://www.youtube-nocookie.com/embed/${youtubeId}`}
       title="Stardust, David Bowie Tribute Show"
@@ -19,20 +19,11 @@ const { heading, youtubeId } = Astro.props;
   </div>
 </section>
 
-<noscript>
-  <style is:global>
-    #watch .watch__heading,
-    #watch .watch__frame {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-  </style>
-</noscript>
-
 <style>
   .watch {
     background: var(--color-black);
-    padding: var(--space-xl) var(--space-md);
+    padding-block: var(--space-xl);
+    padding-inline: var(--space-md);
   }
 
   .watch__heading {
@@ -40,65 +31,22 @@ const { heading, youtubeId } = Astro.props;
     font-weight: 800;
     font-size: var(--size-display-md);
     text-align: center;
-    margin: 0 0 var(--space-lg);
-    opacity: 0;
-    transform: translateY(16px);
+    margin-block: 0 var(--space-lg);
   }
 
   .watch__frame {
     position: relative;
-    max-width: 56rem;
+    max-inline-size: 56rem;
     margin-inline: auto;
     aspect-ratio: 16 / 9;
     background: var(--color-charcoal);
-    opacity: 0;
-    transform: translateY(16px);
   }
 
   .watch__frame iframe {
     position: absolute;
     inset: 0;
-    width: 100%;
-    height: 100%;
+    inline-size: 100%;
+    block-size: 100%;
     border: 0;
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    .watch__heading,
-    .watch__frame {
-      opacity: 1;
-      transform: none;
-    }
-  }
 </style>
-
-<script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { prefersReducedMotion } from '../scripts/reduced-motion';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  const targets = [
-    document.querySelector('.watch__heading'),
-    document.querySelector('.watch__frame'),
-  ] as HTMLElement[];
-
-  if (!prefersReducedMotion()) {
-    gsap.to(targets, {
-      opacity: 1,
-      y: 0,
-      duration: 0.7,
-      stagger: 0.15,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: '#watch',
-        start: 'top 80%',
-      },
-    });
-
-    if ('fonts' in document) {
-      document.fonts.ready.then(() => ScrollTrigger.refresh());
-    }
-  }
-</script>

@@ -21,8 +21,8 @@ const { locale, heading, intro, items } = Astro.props;
   <h2 class="explore__heading">{heading}</h2>
   <p class="explore__intro">{intro}</p>
   <ul class="explore__grid">
-    {items.map((item) => (
-      <li>
+    {items.map((item, i) => (
+      <li data-reveal style={`--reveal-delay: ${Math.min(i, 3) * 80}ms`}>
         <a class="explore__card" href={pagePath(locale, item.slug)}>
           <span class="explore__title">{item.title}</span>
           <span class="explore__text">{item.text}</span>
@@ -35,7 +35,8 @@ const { locale, heading, intro, items } = Astro.props;
 <style>
   .explore {
     background: var(--color-black);
-    padding: var(--space-xl) var(--space-md);
+    padding-block: var(--space-xl);
+    padding-inline: var(--space-md);
   }
 
   .explore__heading {
@@ -43,12 +44,13 @@ const { locale, heading, intro, items } = Astro.props;
     font-weight: 800;
     font-size: var(--size-display-md);
     text-align: center;
-    margin: 0 0 var(--space-sm);
+    margin-block: 0 var(--space-sm);
   }
 
   .explore__intro {
-    max-width: 42rem;
-    margin: 0 auto var(--space-lg);
+    max-inline-size: 42rem;
+    margin-block: 0 var(--space-lg);
+    margin-inline: auto;
     text-align: center;
     font-size: var(--size-body);
     line-height: 1.6;
@@ -56,9 +58,10 @@ const { locale, heading, intro, items } = Astro.props;
 
   .explore__grid {
     list-style: none;
-    margin: 0 auto;
+    margin-block: 0;
+    margin-inline: auto;
     padding: 0;
-    max-width: 64rem;
+    max-inline-size: 64rem;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
     gap: var(--space-sm);
@@ -68,8 +71,9 @@ const { locale, heading, intro, items } = Astro.props;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    height: 100%;
-    padding: var(--space-sm) var(--space-md);
+    block-size: 100%;
+    padding-block: var(--space-sm);
+    padding-inline: var(--space-md);
     border: 1px solid rgba(242, 237, 228, 0.25);
     color: var(--color-off-white);
     text-decoration: none;
@@ -93,6 +97,13 @@ const { locale, heading, intro, items } = Astro.props;
     font-size: 0.95rem;
     line-height: 1.5;
     opacity: 0.85;
+  }
+
+  /* Desktop: the same 72rem column as the swipe rows. */
+  @media (min-width: 1000px) {
+    .explore__grid {
+      max-inline-size: 72rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

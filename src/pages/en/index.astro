@@ -49,12 +49,16 @@ const whatsappHref = `https://wa.me/${copy.contact.whatsappNumber}?text=${encode
       enlargeLabel={copy.ui.enlarge}
       readMoreLabel={copy.ui.readMore}
       readLessLabel={copy.ui.readLess}
+      prevLabel={copy.ui.prev}
+      nextLabel={copy.ui.next}
     />
     <BandMembers
       locale="en"
       statement={copy.band.statement}
       members={bandMembers.filter((m) => m.role === 'core')}
       closeLabel={copy.ui.bandSheetClose}
+      prevLabel={copy.ui.prev}
+      nextLabel={copy.ui.next}
     />
     <BowieCollage
       locale="en"
@@ -62,6 +66,8 @@ const whatsappHref = `https://wa.me/${copy.contact.whatsappNumber}?text=${encode
       fragments={copy.question.fragments}
       eras={copy.bowies.eras}
       enlargeLabel={copy.ui.enlarge}
+      prevLabel={copy.ui.prev}
+      nextLabel={copy.ui.next}
     />
     <BowieStory
       paragraph={copy.bowieStory.paragraph}
@@ -88,6 +94,8 @@ const whatsappHref = `https://wa.me/${copy.contact.whatsappNumber}?text=${encode
       allShowsLabel={copy.ui.allShows}
       hideShowsLabel={copy.ui.hideShows}
       allYearsLabel={copy.ui.allYears}
+      prevLabel={copy.ui.prev}
+      nextLabel={copy.ui.next}
     />
     <ExploreLinks
       locale="en"

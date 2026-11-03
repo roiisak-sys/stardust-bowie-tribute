@@ -1,10 +1,55 @@
 // Fills each [data-swipe] row's dots (one per [data-swipe-item]) and keeps the
 // visible item's dot marked `on`. The IntersectionObserver uses the track as
 // its root, so it follows the scrollable axis in LTR and RTL alike.
+//
+// The previous / next buttons (shown by CSS only for mouse users) scroll the
+// track by whole items and disable themselves at either end.
+import { edgeState, pageStep, scrollDelta } from '../lib/swipe-nav';
+import { prefersReducedMotion } from './reduced-motion';
+
+function initArrows(row: HTMLElement, track: HTMLElement) {
+  const prev = row.querySelector<HTMLButtonElement>('[data-swipe-prev]');
+  const next = row.querySelector<HTMLButtonElement>('[data-swipe-next]');
+  if (!prev || !next) return;
+
+  const sync = () => {
+    const { canPrev, canNext } = edgeState(track.scrollLeft, track.scrollWidth, track.clientWidth);
+    const hadFocus = document.activeElement;
+    prev.disabled = !canPrev;
+    next.disabled = !canNext;
+    // A button that just disabled itself drops focus: hand it to its partner.
+    if (hadFocus === prev && !canPrev && canNext) next.focus({ preventScroll: true });
+    if (hadFocus === next && !canNext && canPrev) prev.focus({ preventScroll: true });
+  };
+
+  const go = (which: 'prev' | 'next') => {
+    const items = track.querySelectorAll<HTMLElement>('[data-swipe-item]');
+    if (!items.length) return;
+    const first = items[0].getBoundingClientRect();
+    const pitch = items.length > 1 ? Math.abs(items[1].getBoundingClientRect().left - first.left) : first.width;
+    const cs = getComputedStyle(track);
+    const content = track.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const step = pageStep({ pitch, content, gap: Math.max(0, pitch - first.width) });
+    track.scrollBy({
+      left: scrollDelta(which, cs.direction, step),
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    });
+  };
+
+  prev.addEventListener('click', () => go('prev'));
+  next.addEventListener('click', () => go('next'));
+  track.addEventListener('scroll', sync, { passive: true });
+  window.addEventListener('resize', sync);
+  if ('ResizeObserver' in window) new ResizeObserver(sync).observe(track);
+  sync();
+}
+
 function init(row: HTMLElement) {
   const track = row.querySelector<HTMLElement>('.swipe__track');
   const dotsBox = row.querySelector<HTMLElement>('.swipe__dots');
   if (!track || !dotsBox) return;
+
+  initArrows(row, track);
 
   const items = Array.from(track.querySelectorAll<HTMLElement>('[data-swipe-item]'));
   dotsBox.replaceChildren();

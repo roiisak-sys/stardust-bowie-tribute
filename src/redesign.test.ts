@@ -21,6 +21,10 @@ export const GUARDED_SOURCES = [
   'src/components/BowieCollage.astro',
   'src/components/UpcomingShows.astro',
   'src/components/PastShows.astro',
+  'src/components/ExploreLinks.astro',
+  'src/components/FinalScene.astro',
+  'src/components/WatchVideo.astro',
+  'src/components/BowieStory.astro',
 ];
 
 /** Files that must exist as of Task 2. */
@@ -760,5 +764,226 @@ describe('Task 8 — past shows: poster row and short list panel', () => {
     for (const prop of ['locale', 'heading', 'shows', 'enlargeLabel', 'allShowsLabel', 'hideShowsLabel', 'allYearsLabel']) {
       expect(src).toMatch(new RegExp(`\\b${prop}\\b`));
     }
+  });
+});
+
+describe('Task 9a — reveal motion, desktop widths and mouse reachability', () => {
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+  const src = (path: string) => readFileSync(join(ROOT, path), 'utf-8');
+  const stripCss = (path: string) => cssOf(path).replace(/\/\*[\s\S]*?\*\//g, '');
+  const copyHe = JSON.parse(src('src/content/copy.he.json'));
+  const copyEn = JSON.parse(src('src/content/copy.en.json'));
+  const pages: [string, typeof copyHe][] = [
+    ['he/index.html', copyHe],
+    ['en/index.html', copyEn],
+    ['index.html', copyEn],
+  ];
+
+  /** The body of the first `@media (min-width: 1000px) { ... }` block, brace matched. */
+  function desktopBlock(css: string): string {
+    const m = /@media\s*\(\s*min-width\s*:\s*1000px\s*\)\s*\{/.exec(css);
+    if (!m) return '';
+    let depth = 1;
+    let i = m.index + m[0].length;
+    const start = i;
+    while (i < css.length && depth > 0) {
+      if (css[i] === '{') depth++;
+      else if (css[i] === '}') depth--;
+      i++;
+    }
+    return css.slice(start, i - 1);
+  }
+
+  const sectionOf = (html: string, id: string) =>
+    html.slice(html.indexOf(`id="${id}"`), html.indexOf('</section>', html.indexOf(`id="${id}"`)));
+
+  describe('reveal on the remaining sections', () => {
+    for (const [rel, copy] of pages) {
+      it(`${rel} reveals every Explore card, staggered`, () => {
+        const section = sectionOf(read(rel), 'explore');
+        const items = [...section.matchAll(/<li[^>]*>/g)].map((m) => m[0]);
+        expect(items).toHaveLength(copy.explore.items.length);
+        items.forEach((li, i) => {
+          expect(li).toContain('data-reveal');
+          expect(li).toContain(`--reveal-delay: ${Math.min(i, 3) * 80}ms`);
+        });
+      });
+
+      it(`${rel} reveals the watch frame and the final blocks, but not the whole final section`, () => {
+        const html = read(rel);
+        expect(html).toMatch(/<div[^>]*class="watch__frame"[^>]*data-reveal|<div[^>]*data-reveal[^>]*class="watch__frame"/);
+        const final = sectionOf(html, 'final-scene');
+        expect(final.match(/data-reveal/g)?.length ?? 0).toBeGreaterThanOrEqual(6);
+        const tag = html.match(/<section[^>]*id="final-scene"[^>]*>/)![0];
+        expect(tag).not.toContain('data-reveal');
+      });
+    }
+
+    it('nothing starts hidden without JS: no bare opacity: 0 or GSAP in the converted sections', () => {
+      for (const p of ['src/components/WatchVideo.astro', 'src/components/FinalScene.astro', 'src/components/ExploreLinks.astro']) {
+        expect(src(p), p).not.toContain('gsap');
+        expect(stripCss(p), p).not.toMatch(/opacity\s*:\s*0(?![.\d])/);
+      }
+    });
+
+    it('the hero never carries data-reveal', () => {
+      expect(src('src/components/Hero.astro')).not.toContain('data-reveal');
+    });
+
+    it('the converted components are on the redesign CSS guard list', () => {
+      for (const p of [
+        'src/components/ExploreLinks.astro',
+        'src/components/FinalScene.astro',
+        'src/components/WatchVideo.astro',
+        'src/components/BowieStory.astro',
+        'src/components/SwipeRow.astro',
+      ]) {
+        expect(GUARDED_SOURCES, p).toContain(p);
+      }
+    });
+  });
+
+  describe('desktop widths', () => {
+    const cases: [string, number][] = [
+      ['src/components/BandGallery.astro', 3],
+      ['src/components/BandMembers.astro', 4],
+      ['src/components/BowieCollage.astro', 4],
+      ['src/components/PastShows.astro', 5],
+    ];
+    for (const [path, n] of cases) {
+      it(`${path} shows exactly ${n} per view from 1000px`, () => {
+        const block = desktopBlock(stripCss(path));
+        const m = block.match(
+          /--swipe-item\s*:\s*calc\(\s*\(\s*100%\s*-\s*(\d+)\s*\*\s*var\(\s*--swipe-gap\s*\)\s*\)\s*\/\s*(\d+)\s*\)/,
+        );
+        expect(m, `${path} has no --swipe-item calc in the 1000px block`).not.toBeNull();
+        expect(Number(m![2])).toBe(n);
+        expect(Number(m![1])).toBe(n - 1);
+      });
+    }
+
+    it('SwipeRow centres the row in a 72rem column from 1000px', () => {
+      const block = desktopBlock(stripCss('src/components/SwipeRow.astro'));
+      expect(block).toMatch(/max-inline-size\s*:\s*72rem/);
+      expect(block).toMatch(/margin-inline\s*:\s*auto/);
+    });
+
+    it('Explore grid widens to the same 72rem column from 1000px', () => {
+      expect(desktopBlock(stripCss('src/components/ExploreLinks.astro'))).toMatch(/max-inline-size\s*:\s*72rem/);
+    });
+  });
+
+  describe('SwipeRow gutter hook', () => {
+    it('reads --swipe-gutter with a fallback and never redefines it on .swipe', () => {
+      const css = stripCss('src/components/SwipeRow.astro');
+      expect(css).toMatch(/padding-inline\s*:\s*var\(\s*--swipe-gutter\s*,/);
+      expect(css).toMatch(/scroll-padding-inline\s*:\s*var\(\s*--swipe-gutter\s*,/);
+      expect(css).not.toMatch(/--swipe-gutter\s*:/);
+    });
+
+    it('no section reaches into .swipe to set the gutter any more', () => {
+      for (const p of [
+        'src/components/BandMembers.astro',
+        'src/components/PastShows.astro',
+        'src/components/BandGallery.astro',
+        'src/components/BowieCollage.astro',
+      ]) {
+        expect(stripCss(p), p).not.toMatch(/:global\(\.swipe\)/);
+      }
+    });
+
+    it('a section can set the gutter itself (band keeps 2rem)', () => {
+      expect(stripCss('src/components/BandMembers.astro')).toMatch(/\.band\s*\{[^{}]*--swipe-gutter\s*:\s*var\(--space-md\)/);
+    });
+  });
+
+  describe('previous / next buttons for mouse users', () => {
+    for (const [rel, copy] of pages) {
+      for (const id of ['band-gallery', 'band', 'bowie-collage', 'past-shows']) {
+        it(`${rel} #${id} has labelled prev and next buttons`, () => {
+          const section = sectionOf(read(rel), id);
+          const prev = section.match(/<button[^>]*data-swipe-prev[^>]*>/);
+          const next = section.match(/<button[^>]*data-swipe-next[^>]*>/);
+          expect(prev, 'prev').not.toBeNull();
+          expect(next, 'next').not.toBeNull();
+          expect(prev![0]).toContain('type="button"');
+          expect(prev![0]).toContain(`aria-label="${copy.ui.prev}"`);
+          expect(next![0]).toContain(`aria-label="${copy.ui.next}"`);
+        });
+      }
+    }
+
+    it('the buttons are hidden by default and only shown with .js on hover + fine pointer', () => {
+      const css = stripCss('src/components/SwipeRow.astro');
+      expect(css).toMatch(/\.swipe__arrow\s*\{[^{}]*display\s*:\s*none/);
+      const gate = /@media\s*\(\s*hover\s*:\s*hover\s*\)\s*and\s*\(\s*pointer\s*:\s*fine\s*\)\s*\{/.exec(css);
+      expect(gate, 'hover/pointer media query').not.toBeNull();
+      const after = css.slice(gate!.index);
+      expect(after).toMatch(/:global\(\.js\)\s+\.swipe__arrow\s*\{[^{}]*display\s*:\s*(grid|flex|inline-flex)/);
+      expect(css).toMatch(/\.swipe__arrow\[disabled\]\s*\{[^{}]*visibility\s*:\s*hidden/);
+      expect(css).toMatch(/\.swipe__arrow:focus-visible\s*\{[^{}]*outline\s*:[^;}]*var\(--color-accent-orange/);
+    });
+
+    it('the arrows sit with logical offsets, vertically centred', () => {
+      const css = stripCss('src/components/SwipeRow.astro');
+      expect(css).toMatch(/inset-inline-start\s*:/);
+      expect(css).toMatch(/inset-inline-end\s*:/);
+      expect(css).toMatch(/inset-block\s*:\s*0/);
+    });
+
+    it('SwipeRow takes prevLabel and nextLabel props', () => {
+      const s = src('src/components/SwipeRow.astro');
+      expect(s).toMatch(/prevLabel\s*:\s*string/);
+      expect(s).toMatch(/nextLabel\s*:\s*string/);
+    });
+
+    it('the script scrolls with scrollBy and picks smooth/auto from reduced motion', () => {
+      const s = src('src/scripts/swipe-row.ts');
+      expect(s).toContain('scrollBy');
+      expect(s).toContain('prefersReducedMotion');
+      expect(s).toMatch(/'auto'/);
+      expect(s).toMatch(/'smooth'/);
+      expect(s).toContain('direction');
+    });
+
+    describe('scroll maths', () => {
+      it('next goes toward the inline end: right in LTR, left in RTL', async () => {
+        const { scrollDelta } = await import('./lib/swipe-nav');
+        expect(scrollDelta('next', 'ltr', 300)).toBe(300);
+        expect(scrollDelta('prev', 'ltr', 300)).toBe(-300);
+        expect(scrollDelta('next', 'rtl', 300)).toBe(-300);
+        expect(scrollDelta('prev', 'rtl', 300)).toBe(300);
+      });
+
+      it('edge state is sign-agnostic (RTL scrollLeft is zero or negative)', async () => {
+        const { edgeState } = await import('./lib/swipe-nav');
+        // 1000 wide content in a 400 wide track: 600 of travel
+        expect(edgeState(0, 1000, 400)).toEqual({ canPrev: false, canNext: true });
+        expect(edgeState(300, 1000, 400)).toEqual({ canPrev: true, canNext: true });
+        expect(edgeState(600, 1000, 400)).toEqual({ canPrev: true, canNext: false });
+        expect(edgeState(-300, 1000, 400)).toEqual({ canPrev: true, canNext: true });
+        expect(edgeState(-599.6, 1000, 400)).toEqual({ canPrev: true, canNext: false });
+        expect(edgeState(-0, 1000, 400)).toEqual({ canPrev: false, canNext: true });
+      });
+
+      it('a row that fits has no travel in either direction', async () => {
+        const { edgeState } = await import('./lib/swipe-nav');
+        expect(edgeState(0, 400, 400)).toEqual({ canPrev: false, canNext: false });
+      });
+
+      it('one page moves by whole items: 4 cards of 250 with a 16 gap', async () => {
+        const { pageStep } = await import('./lib/swipe-nav');
+        // track content 1048 = 4 * 250 + 3 * 16
+        expect(pageStep({ pitch: 266, content: 1048, gap: 16 })).toBe(4 * 266);
+        // phone: one 82% card at a time
+        expect(pageStep({ pitch: 300, content: 320, gap: 16 })).toBe(300);
+        // never zero
+        expect(pageStep({ pitch: 500, content: 100, gap: 0 })).toBe(500);
+      });
+    });
   });
 });
