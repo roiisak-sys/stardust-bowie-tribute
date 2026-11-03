@@ -1089,7 +1089,7 @@ describe('Task 9b — carried review fixes', () => {
 
     it('the naming runs whenever the current slide changes', () => {
       const s = src('src/scripts/lightbox.ts');
-      const fn = s.match(/function setCurrent\([^)]*\)\s*\{([\s\S]*?)\n {2}\}\n/);
+      const fn = s.match(/function setCurrent\([^)]*\)\s*\{([\s\S]*?)\r?\n {2}\}\r?\n/);
       expect(fn).not.toBeNull();
       expect(fn![1]).toMatch(/nameDialog\(/);
     });
