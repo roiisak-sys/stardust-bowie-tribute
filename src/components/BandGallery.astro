@@ -1,13 +1,17 @@
 ---
 import { imageSize } from '../lib/image-size';
+import SwipeRow from './SwipeRow.astro';
 
 interface Props {
   locale: 'he' | 'en';
   heading: string;
   subheading: string;
   introParagraph: string;
+  enlargeLabel: string;
+  readMoreLabel: string;
+  readLessLabel: string;
 }
-const { locale, heading, subheading, introParagraph } = Astro.props;
+const { locale, heading, subheading, introParagraph, enlargeLabel, readMoreLabel, readLessLabel } = Astro.props;
 
 // Order matters: the first photo is the large highlighted one.
 const order = ['05', '02', '03', '04', '01', '06', '07', '08', '09', '10', '11', '12'];
@@ -22,52 +26,70 @@ const dominantAlt =
 ---
 
 <section id="band-gallery" class="gallery has-grain">
-  <h2 class="gallery__heading">{heading}</h2>
-  <p class="gallery__subheading">{subheading}</p>
-  <p class="gallery__intro">{introParagraph}</p>
+  <div class="gallery__head">
+    <h2 class="gallery__heading">{heading}</h2>
+    <p class="gallery__subheading">{subheading}</p>
+    <p class="gallery__intro" id="gallery-intro" data-readmore-text>{introParagraph}</p>
+    <button
+      type="button"
+      class="gallery__more"
+      data-readmore
+      aria-controls="gallery-intro"
+      aria-expanded="false"
+      data-more={readMoreLabel}
+      data-less={readLessLabel}>{readMoreLabel}</button
+    >
+  </div>
 
-  <div class="gallery__grid" data-gallery-grid>
+  <SwipeRow label={heading}>
     {photos.map((p, i) => (
-      <div class={i === 0 ? 'gallery__cell gallery__cell--dominant' : 'gallery__cell'} data-gallery-cell>
-        {i === 0 ? (
-          <img
-            src={p.src}
-            alt={dominantAlt}
-            width={p.width}
-            height={p.height}
-            loading="lazy"
-            decoding="async"
-            class="gallery__image"
-          />
-        ) : (
-          <img
-            src={p.src}
-            alt=""
-            width={p.width}
-            height={p.height}
-            loading="lazy"
-            decoding="async"
-            class="gallery__image"
-          />
-        )}
+      <div class="gallery__item" data-swipe-item>
+        <button
+          type="button"
+          class="zoomable"
+          data-lightbox="gallery"
+          data-full={p.src}
+          data-caption={dominantAlt}
+          aria-label={enlargeLabel}
+        >
+          {i === 0 ? (
+            <img
+              src={p.src}
+              alt={dominantAlt}
+              width={p.width}
+              height={p.height}
+              decoding="async"
+              class="gallery__image"
+            />
+          ) : (
+            <img
+              src={p.src}
+              alt=""
+              width={p.width}
+              height={p.height}
+              loading={i < 2 ? undefined : 'lazy'}
+              decoding="async"
+              class="gallery__image"
+            />
+          )}
+        </button>
       </div>
     ))}
-  </div>
+  </SwipeRow>
 </section>
-
-<noscript>
-  <style is:global>
-    #band-gallery .gallery__cell {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-  </style>
-</noscript>
 
 <style>
   .gallery {
+    --swipe-item: 80%;
+    --swipe-gap: var(--space-xs);
+    --swipe-gutter: var(--space-md);
     background: var(--color-black);
-    padding: var(--space-xl) var(--space-md) var(--space-md);
+    padding-block: var(--space-xl) var(--space-md);
+  }
+
+  .gallery__head {
+    padding-inline: var(--space-md);
+    text-align: center;
   }
 
   .gallery__heading,
@@ -80,8 +102,8 @@ const dominantAlt =
   }
 
   .gallery__intro {
-    max-width: 42rem;
-    margin: var(--space-md) auto var(--space-lg);
+    max-inline-size: 42rem;
+    margin: var(--space-md) auto var(--space-xs);
     text-align: center;
     font-family: var(--font-body);
     font-size: var(--size-body);
@@ -89,110 +111,95 @@ const dominantAlt =
     color: var(--color-off-white);
   }
 
-  .gallery__grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: 20vh;
-    grid-auto-flow: dense;
-    gap: var(--space-xs);
-    max-width: 64rem;
-    margin-inline: auto;
+  /* Read more: with JS the intro is clamped to three lines and a toggle shows.
+     Without JS the full paragraph stays visible and the button stays hidden. */
+  .gallery__more[data-readmore] {
+    display: none;
   }
 
-  .gallery__cell {
-    position: relative;
+  :global(.js) .gallery__intro[data-readmore-text]:not([data-open]) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     overflow: hidden;
-    opacity: 0;
-    transform: translateY(20px);
   }
 
-  .gallery__cell--dominant {
-    grid-column: span 2;
-    grid-row: span 2;
+  :global(.js) .gallery__more[data-readmore]:not([hidden]) {
+    display: inline-block;
+    margin-block-end: var(--space-md);
+    padding: 0.5rem 1rem;
+    border: 0;
+    background: none;
+    color: var(--color-accent-orange, #f96949);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .gallery__more:focus-visible {
+    outline: 2px solid var(--color-accent-orange, #f96949);
+    outline-offset: 2px;
+  }
+
+  .gallery__item {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+  }
+
+  .gallery__item :global(.zoomable) {
+    block-size: 100%;
   }
 
   .gallery__image {
-    width: 100%;
-    height: 100%;
+    inline-size: 100%;
+    block-size: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.4s ease, filter 0.4s ease;
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .gallery__cell:hover .gallery__image {
-      transform: scale(1.04);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .gallery__cell {
-      opacity: 1;
-      transform: none;
-    }
-    .gallery__image {
-      transition: none;
+  @media (prefers-reduced-motion: no-preference) {
+    @media (hover: hover) and (pointer: fine) {
+      .gallery__image {
+        transition: transform 0.4s ease;
+      }
+      .gallery__item:hover .gallery__image {
+        transform: scale(1.04);
+      }
     }
   }
 
-  /* Mobile: dominant image stays full-width and tall; supporting images
-     become a 2-across grid beneath it, rather than a naive uniform stack. */
-  @media (max-width: 699px) {
-    .gallery__grid {
-      grid-template-columns: repeat(2, 1fr);
-      /* minmax(20vh, auto), not a fixed 20vh: a fixed row height works for
-         the supporting cells (their image has no intrinsic height, so the
-         row just sizes to the 20vh minimum), but the dominant cell's
-         height is driven by its own aspect-ratio below and varies with the
-         source photo. A fixed-height row silently clips/overflows whenever
-         that content is taller than one row track; minmax's auto upper
-         bound lets the row grow to fit instead. */
-      grid-auto-rows: minmax(20vh, auto);
+  @media (min-width: 700px) {
+    .gallery {
+      --swipe-item: 46%;
     }
-    .gallery__cell--dominant {
-      /* Explicitly cancel the desktop rule's `grid-row: span 2` here: the
-         cell's mobile height is driven entirely by aspect-ratio below, so
-         spanning fixed 20vh rows on top of that reserved more grid height
-         than the image actually filled and left a dead gap before the next
-         row. Without this override the base (non-media-query) rule still
-         applies at every viewport width. */
-      grid-column: 1 / -1;
-      grid-row: auto;
-      aspect-ratio: 4 / 3;
-      height: auto;
+  }
+
+  @media (min-width: 1000px) {
+    .gallery {
+      --swipe-item: 30%;
     }
   }
 </style>
 
 <script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { prefersReducedMotion } from '../scripts/reduced-motion';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  const cells = gsap.utils.toArray('[data-gallery-cell]') as HTMLElement[];
-
-  if (prefersReducedMotion()) {
-    cells.forEach((c) => {
-      c.style.opacity = '1';
-      c.style.transform = 'none';
+  // "Read more": toggle the clamped intro. Hides the toggle if the text fits.
+  const btn = document.querySelector<HTMLButtonElement>('[data-readmore]');
+  const text = document.querySelector<HTMLElement>('[data-readmore-text]');
+  if (btn && text) {
+    const fits = () => text.scrollHeight <= text.clientHeight + 1;
+    const sync = () => {
+      if (text.hasAttribute('data-open')) return;
+      btn.hidden = fits();
+    };
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') !== 'true';
+      btn.setAttribute('aria-expanded', String(open));
+      text.toggleAttribute('data-open', open);
+      btn.textContent = (open ? btn.dataset.less : btn.dataset.more) ?? '';
     });
-  } else {
-    gsap.to(cells, {
-      opacity: 1,
-      y: 0,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: '[data-gallery-grid]',
-        start: 'top 80%',
-      },
-    });
-
-    if ('fonts' in document) {
-      document.fonts.ready.then(() => ScrollTrigger.refresh());
-    }
+    sync();
+    if ('fonts' in document) document.fonts.ready.then(sync);
+    window.addEventListener('resize', sync);
   }
 </script>

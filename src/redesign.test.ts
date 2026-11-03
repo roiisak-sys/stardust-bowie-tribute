@@ -16,6 +16,7 @@ export const GUARDED_SOURCES = [
   'src/components/Lightbox.astro',
   'src/components/ActionBar.astro',
   'src/components/Ticker.astro',
+  'src/components/BandGallery.astro',
 ];
 
 /** Files that must exist as of Task 2. */
@@ -188,5 +189,85 @@ describe('Task 3 — opening pill, ticker and action bar', () => {
 
   it.skipIf(!!next)('no pill element when no upcoming show', () => {
     expect(read('he/index.html')).not.toContain('class="hero__pill"');
+  });
+});
+
+describe('Task 4 — gallery swipe row, viewer and read more', () => {
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+  const copyHe = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.he.json'), 'utf-8'));
+  const copyEn = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.en.json'), 'utf-8'));
+  const galleryOf = (html: string) =>
+    html.slice(html.indexOf('id="band-gallery"'), html.indexOf('</section>', html.indexOf('id="band-gallery"')));
+
+  const pages: [string, typeof copyHe][] = [
+    ['he/index.html', copyHe],
+    ['en/index.html', copyEn],
+    ['index.html', copyEn],
+  ];
+
+  for (const [rel, copy] of pages) {
+    it(`${rel} has 12 gallery triggers, each labelled and captioned`, () => {
+      const gallery = galleryOf(read(rel));
+      const triggers = gallery.match(/<button[^>]*data-lightbox="gallery"[^>]*>/g) ?? [];
+      expect(triggers).toHaveLength(12);
+      for (const t of triggers) {
+        expect(t).toContain('class="zoomable"');
+        expect(t).toMatch(/data-full="\/assets\/gallery\/[^"]+\.webp"/);
+        expect(t).toMatch(/data-caption="[^"]+"/);
+        expect(t).toContain(`aria-label="${copy.ui.enlarge}"`);
+      }
+      expect(gallery).toContain('data-swipe');
+      expect((gallery.match(/<div[^>]*data-swipe-item/g) ?? []).length).toBe(12);
+    });
+
+    it(`${rel} keeps the full intro text and a data-readmore button with copy labels`, () => {
+      const html = read(rel);
+      const escaped = copy.band.introParagraph
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+      expect(html.includes(copy.band.introParagraph) || html.includes(escaped)).toBe(true);
+      const btn = html.match(/<button[^>]*data-readmore[^>]*>[\s\S]*?<\/button>/);
+      expect(btn).not.toBeNull();
+      expect(btn![0]).toContain('aria-expanded="false"');
+      expect(btn![0]).toContain(`data-more="${copy.ui.readMore}"`);
+      expect(btn![0]).toContain(`data-less="${copy.ui.readLess}"`);
+      expect(btn![0]).toContain(copy.ui.readMore);
+    });
+  }
+
+  it('first two gallery images are not lazy, the other ten are', () => {
+    const imgs = galleryOf(read('he/index.html')).match(/<img[^>]*>/g) ?? [];
+    expect(imgs).toHaveLength(12);
+    imgs.forEach((img, i) => {
+      expect(img).toMatch(/width="\d+"/);
+      expect(img).toMatch(/height="\d+"/);
+      if (i < 2) expect(img).not.toContain('loading="lazy"');
+      else expect(img).toContain('loading="lazy"');
+    });
+  });
+
+  it('the read-more clamp is scoped under .js and the button is hidden otherwise', () => {
+    const css = cssOf('src/components/BandGallery.astro').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(css).toMatch(/-webkit-line-clamp\s*:\s*3/);
+    // every rule that mentions line-clamp sits under a .js selector
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*line-clamp[^{}]*)\}/g)];
+    expect(rules.length).toBeGreaterThan(0);
+    for (const r of rules) expect(r[1]).toMatch(/\.js(?![\w-])/);
+    // the button is not shown without .js
+    expect(css).toMatch(/\[data-readmore\][^{}]*\{[^{}]*display\s*:\s*none/);
+    expect(css).toMatch(/\.js[^{}]*\[data-readmore\][^{}]*\{[^{}]*display\s*:\s*(inline-)?(block|flex)/);
+  });
+
+  it('the old GSAP gallery entrance is gone', () => {
+    const src = readFileSync(join(ROOT, 'src/components/BandGallery.astro'), 'utf-8');
+    expect(src).not.toContain('gsap');
+    expect(src).not.toContain('data-gallery-cell');
   });
 });
