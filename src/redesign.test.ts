@@ -19,6 +19,7 @@ export const GUARDED_SOURCES = [
   'src/components/BandGallery.astro',
   'src/components/BandMembers.astro',
   'src/components/BowieCollage.astro',
+  'src/components/UpcomingShows.astro',
 ];
 
 /** Files that must exist as of Task 2. */
@@ -462,6 +463,109 @@ describe('Task 6 — Bowie eras swipe strip', () => {
     expect(css).toMatch(/object-position\s*:\s*center top/);
     expect(css).toMatch(/object-position\s*:\s*50% 25%/);
     expect(css).toMatch(/aspect-ratio\s*:\s*3\s*\/\s*4/);
+  });
+});
+
+describe('Task 7 — upcoming show as a ticket card', () => {
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+  const copyHe = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.he.json'), 'utf-8'));
+  const copyEn = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.en.json'), 'utf-8'));
+  const decode = (t: string) =>
+    t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const upcomingOf = (html: string) =>
+    html.slice(html.indexOf('id="upcoming-shows"'), html.indexOf('</section>', html.indexOf('id="upcoming-shows"')));
+  const shows = JSON.parse(readFileSync(join(ROOT, 'src/content/shows.json'), 'utf-8')) as {
+    status: string;
+    dateISO: string;
+    venueHe: string;
+    venueEn: string;
+    cityHe: string;
+    cityEn: string;
+    posterImage: string;
+    ticketUrl: string;
+    eventUrl: string;
+  }[];
+  const today = new Date().toISOString().slice(0, 10);
+  const next = shows
+    .filter((s) => s.status === 'upcoming' && s.dateISO >= today)
+    .sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0];
+
+  const pages: [string, 'he' | 'en', typeof copyHe][] = [
+    ['he/index.html', 'he', copyHe],
+    ['en/index.html', 'en', copyEn],
+    ['index.html', 'en', copyEn],
+  ];
+
+  for (const [rel, loc, copy] of pages) {
+    it.skipIf(!next)(`${rel} renders the upcoming show as a ticket with date block, venue, city and tickets link`, () => {
+      const section = decode(upcomingOf(read(rel)));
+      expect(section).toContain(copy.upcomingShows.heading);
+      expect(section).toMatch(/<div[^>]*class="ticket[ "]/);
+      const [year, month, day] = next!.dateISO.split('-');
+      expect(section).toMatch(/class="ticket__date[ "]/);
+      expect(section).toContain(`datetime="${next!.dateISO}"`);
+      expect(section).toMatch(/<time[^>]*class="ticket__date/);
+      expect(section).toMatch(new RegExp(`class="ticket__day[^"]*"[^>]*>\\s*${day}\\s*<`));
+      expect(section).toMatch(new RegExp(`class="ticket__year[^"]*"[^>]*>\\s*${year}\\s*<`));
+      const expectedMonth = new Date(`${next!.dateISO}T00:00:00Z`)
+        .toLocaleDateString(loc === 'he' ? 'he-IL' : 'en-US', { month: 'short', timeZone: 'UTC' })
+        .toUpperCase();
+      expect(section).toMatch(new RegExp(`class="ticket__month[^"]*"[^>]*>\\s*${expectedMonth}\\s*<`));
+      expect(Number(month)).toBeGreaterThan(0);
+      expect(section).toContain(loc === 'he' ? next!.venueHe : next!.venueEn);
+      expect(section).toContain(loc === 'he' ? next!.cityHe : next!.cityEn);
+      const cta = section.match(/<a[^>]*class="[^"]*\bticket__cta\b[^"]*"[^>]*>[\s\S]*?<\/a>/);
+      expect(cta).not.toBeNull();
+      const wantedUrl = next!.ticketUrl || next!.eventUrl;
+      if (wantedUrl) {
+        expect(cta![0]).toContain(`href="${wantedUrl}"`);
+        expect(cta![0]).toContain(next!.ticketUrl ? copy.upcomingShows.ticketsCta : copy.upcomingShows.viewEventCta);
+      }
+    });
+
+    it.skipIf(!next || !next?.posterImage)(`${rel} makes the poster a viewer trigger that keeps its proportions`, () => {
+      const section = decode(upcomingOf(read(rel)));
+      const trigger = section.match(/<button[^>]*data-lightbox="upcoming"[^>]*>/);
+      expect(trigger).not.toBeNull();
+      expect(trigger![0]).toContain('type="button"');
+      expect(trigger![0]).toContain('class="zoomable"');
+      expect(trigger![0]).toContain(`data-full="${next!.posterImage}"`);
+      const alt = loc === 'he' ? `כרזה: ${next!.venueHe}, ${next!.cityHe}` : `Poster: ${next!.venueEn}, ${next!.cityEn}`;
+      expect(trigger![0]).toContain(`data-caption="${alt}"`);
+      expect(trigger![0]).toContain(`aria-label="${copy.ui.enlarge}"`);
+      const img = section.match(/<img[^>]*>/)![0];
+      expect(img).toContain(`alt="${alt}"`);
+      expect(img).toMatch(/width="\d+"/);
+      expect(img).toMatch(/height="\d+"/);
+    });
+  }
+
+  it('the ticket text keeps real contrast: dark text on the orange block', () => {
+    const css = cssOf('src/components/UpcomingShows.astro').replace(/\/\*[\s\S]*?\*\//g, '');
+    const rule = css.match(/\.ticket__date\s*\{([^{}]*)\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toMatch(/background\s*:\s*var\(--color-accent-orange/);
+    expect(rule![1]).toMatch(/color\s*:\s*var\(--color-black/);
+  });
+
+  it('the component keeps the empty state (class and WhatsApp CTA) and all its props', () => {
+    const src = readFileSync(join(ROOT, 'src/components/UpcomingShows.astro'), 'utf-8');
+    expect(src).toContain('upcoming__empty');
+    expect(src).toContain('upcoming__empty-cta');
+    expect(src).toContain('wa.me');
+    for (const prop of ['locale', 'heading', 'emptyLine', 'emptyCta', 'ticketsCta', 'viewEventCta', 'whatsappNumber', 'whatsappMessage', 'shows', 'enlargeLabel']) {
+      expect(src).toMatch(new RegExp(`\\b${prop}\\b`));
+    }
+  });
+
+  it('with no upcoming show the page uses the empty state (the next-show helper returns null)', async () => {
+    const { nextShow } = await import('./lib/shows-ui');
+    expect(nextShow([], '2026-11-03')).toBeNull();
+    expect(nextShow(shows.map((s) => ({ ...s, status: 'past' as const })) as never, '2026-11-03')).toBeNull();
   });
 });
 

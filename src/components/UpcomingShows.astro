@@ -20,6 +20,7 @@ interface Props {
   emptyCta: string;
   ticketsCta: string;
   viewEventCta: string;
+  enlargeLabel: string;
   whatsappNumber: string;
   whatsappMessage: string;
   shows: Show[];
@@ -31,6 +32,7 @@ const {
   emptyCta,
   ticketsCta,
   viewEventCta,
+  enlargeLabel,
   whatsappNumber,
   whatsappMessage,
   shows,
@@ -42,12 +44,23 @@ const posterSizes = await Promise.all(
 );
 const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
 
-function formatDate(iso: string, locale: 'he' | 'en') {
-  return new Date(iso).toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+// The ISO date is parsed as UTC and formatted in UTC, so the build machine's
+// timezone can never shift the day.
+function parts(iso: string, locale: 'he' | 'en') {
+  const d = new Date(`${iso}T00:00:00Z`);
+  const tag = locale === 'he' ? 'he-IL' : 'en-US';
+  const month = d.toLocaleDateString(tag, { month: 'short', timeZone: 'UTC' });
+  return {
+    month: locale === 'he' ? month : month.toUpperCase(),
+    day: String(d.getUTCDate()).padStart(2, '0'),
+    year: String(d.getUTCFullYear()),
+    full: d.toLocaleDateString(locale === 'he' ? 'he-IL' : 'en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    }),
+  };
 }
 ---
 
@@ -63,37 +76,57 @@ function formatDate(iso: string, locale: 'he' | 'en') {
     </div>
   ) : (
     <div class="upcoming__grid">
-      {upcoming.map((s, i) => (
-        <div class="upcoming__card">
-          {s.posterImage ? (
-            <img
-              src={s.posterImage}
-              alt={locale === 'he' ? `כרזה: ${s.venueHe}, ${s.cityHe}` : `Poster: ${s.venueEn}, ${s.cityEn}`}
-              width={posterSizes[i].width}
-              height={posterSizes[i].height}
-              loading="lazy"
-              decoding="async"
-              class="upcoming__poster"
-            />
-          ) : (
-            <div class="upcoming__poster upcoming__poster--fallback" aria-hidden="true">
-              <span class="upcoming__fallback-date">{formatDate(s.dateISO, locale)}</span>
+      {upcoming.map((s, i) => {
+        const d = parts(s.dateISO, locale);
+        const venue = locale === 'he' ? s.venueHe : s.venueEn;
+        const city = locale === 'he' ? s.cityHe : s.cityEn;
+        const posterAlt = locale === 'he' ? `כרזה: ${s.venueHe}, ${s.cityHe}` : `Poster: ${s.venueEn}, ${s.cityEn}`;
+        return (
+          <div class="ticket">
+            {s.posterImage ? (
+              <button
+                type="button"
+                class="zoomable"
+                data-lightbox="upcoming"
+                data-full={s.posterImage}
+                data-caption={posterAlt}
+                aria-label={enlargeLabel}
+              >
+                <img
+                  src={s.posterImage}
+                  alt={posterAlt}
+                  width={posterSizes[i].width}
+                  height={posterSizes[i].height}
+                  loading="lazy"
+                  decoding="async"
+                  class="ticket__poster"
+                />
+              </button>
+            ) : null}
+            <div class="ticket__row">
+              <time class="ticket__date" datetime={s.dateISO}>
+                <span class="ticket__full">{d.full}</span>
+                <span class="ticket__month" aria-hidden="true">{d.month}</span>
+                <span class="ticket__day" aria-hidden="true">{d.day}</span>
+                <span class="ticket__year" aria-hidden="true">{d.year}</span>
+              </time>
+              <div class="ticket__info">
+                <p class="ticket__venue">{venue}</p>
+                <p class="ticket__city">{city}</p>
+                {s.ticketUrl ? (
+                  <a class="ticket__cta" href={s.ticketUrl} target="_blank" rel="noopener noreferrer">
+                    {ticketsCta}
+                  </a>
+                ) : s.eventUrl ? (
+                  <a class="ticket__cta ticket__cta--secondary" href={s.eventUrl} target="_blank" rel="noopener noreferrer">
+                    {viewEventCta}
+                  </a>
+                ) : null}
+              </div>
             </div>
-          )}
-          <p class="upcoming__date">{formatDate(s.dateISO, locale)}</p>
-          <p class="upcoming__venue">{locale === 'he' ? s.venueHe : s.venueEn}</p>
-          <p class="upcoming__city label">{locale === 'he' ? s.cityHe : s.cityEn}</p>
-          {s.ticketUrl ? (
-            <a class="upcoming__cta" href={s.ticketUrl} target="_blank" rel="noopener noreferrer">
-              {ticketsCta}
-            </a>
-          ) : s.eventUrl ? (
-            <a class="upcoming__cta upcoming__cta--secondary" href={s.eventUrl} target="_blank" rel="noopener noreferrer">
-              {viewEventCta}
-            </a>
-          ) : null}
-        </div>
-      ))}
+          </div>
+        );
+      })}
     </div>
   )}
 </section>
@@ -141,77 +174,119 @@ function formatDate(iso: string, locale: 'he' | 'en') {
 
   .upcoming__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-    gap: var(--space-lg);
-    max-width: 72rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 28rem));
+    justify-content: center;
+    gap: var(--space-md);
+    max-inline-size: 72rem;
     margin-inline: auto;
   }
 
-  .upcoming__card {
+  .ticket {
     display: flex;
     flex-direction: column;
+    background: var(--color-charcoal);
+    color: var(--color-off-white);
+    border: 1px solid #333;
+    border-radius: 16px;
+    overflow: hidden;
   }
 
-  .upcoming__poster {
-    width: 100%;
+  .ticket__poster {
+    inline-size: 100%;
     /* The poster keeps its own proportions (the width/height attributes give
        the ratio), uncropped. */
-    height: auto;
-    object-fit: contain;
+    block-size: auto;
     display: block;
-    background: var(--color-charcoal);
   }
 
-  .upcoming__poster--fallback {
-    aspect-ratio: 1 / 1;
+  .ticket__row {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(160deg, var(--color-charcoal) 0%, var(--color-black) 100%);
+    align-items: stretch;
   }
 
-  .upcoming__fallback-date {
+  .ticket__date {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    flex: none;
+    min-inline-size: 5rem;
+    padding: var(--space-sm);
+    text-align: center;
+    background: var(--color-accent-orange);
+    color: var(--color-black);
     font-family: var(--font-display);
     font-weight: 800;
-    font-size: var(--size-display-md);
-    color: var(--color-accent-green);
+    line-height: 1;
   }
 
-  .upcoming__date {
-    font-family: var(--font-mono);
-    font-size: var(--size-label);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin: var(--space-sm) 0 0;
-    opacity: 0.7;
+  /* The visible parts are decorative; this carries the full date for readers. */
+  .ticket__full {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
-  .upcoming__venue {
+  .ticket__month {
+    font-size: 0.8125rem;
+    letter-spacing: 0.1em;
+  }
+
+  .ticket__day {
+    font-size: 2.25rem;
+    margin-block: 0.25rem;
+  }
+
+  .ticket__year {
+    font-size: 0.8125rem;
+    letter-spacing: 0.06em;
+  }
+
+  .ticket__info {
+    flex: 1;
+    min-inline-size: 0;
+    padding: var(--space-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ticket__venue {
     font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--size-display-md);
-    margin: var(--space-xs) 0 0;
+    font-weight: 800;
+    font-size: 1.125rem;
+    line-height: 1.25;
+    margin: 0;
   }
 
-  .upcoming__city {
-    margin: var(--space-xs) 0 0;
-    opacity: 0.6;
+  .ticket__city {
+    margin: 0.25rem 0 var(--space-sm);
+    color: var(--color-off-white);
+    opacity: 0.75;
   }
 
-  .upcoming__cta {
-    margin-top: var(--space-sm);
-    align-self: flex-start;
+  .ticket__cta {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    margin-block-start: auto;
+    padding-inline: var(--space-md);
     font-family: var(--font-mono);
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: var(--size-label);
     color: var(--color-black);
     background: var(--color-accent-green);
-    padding: var(--space-xs) var(--space-md);
+    border-radius: 8px;
     text-decoration: none;
   }
 
-  .upcoming__cta--secondary {
+  .ticket__cta--secondary {
     color: var(--color-off-white);
     background: transparent;
     border: 1px solid var(--color-off-white);
