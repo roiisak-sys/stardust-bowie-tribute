@@ -25,6 +25,9 @@ interface Props {
 const { locale, statement, members, closeLabel, prevLabel, nextLabel } = Astro.props;
 
 const sizes = await Promise.all(members.map((m) => imageSize(m.photo)));
+/** "Name, instrument" as on the live site: the photo's alt and the card button's accessible name. */
+const nameOf = (m: Props['members'][number]) =>
+  locale === 'he' ? `${m.nameHe}, ${m.instrumentHe}` : `${m.nameEn}, ${m.instrumentEn}`;
 const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
 ---
 
@@ -34,10 +37,10 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
   <SwipeRow label={rowLabel} prevLabel={prevLabel} nextLabel={nextLabel}>
     {members.map((m, i) => (
       <article class="band__card" data-swipe-item data-reveal style={`--reveal-delay: ${Math.min(i, 3) * 80}ms`}>
-        <button type="button" class="band__open">
+        <button type="button" class="band__open" aria-label={nameOf(m)}>
           <img
             src={m.photo}
-            alt=""
+            alt={nameOf(m)}
             width={sizes[i].width}
             height={sizes[i].height}
             loading="lazy"

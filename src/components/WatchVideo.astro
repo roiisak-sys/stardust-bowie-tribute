@@ -1,9 +1,11 @@
 ---
 // Showreel section. The YouTube player is NOT in the initial HTML: its ~1 MB of
 // third-party JS used to load with the page and wrecked the Lighthouse score.
-// Instead a poster (local WebP) with a play control is shown; a click swaps in
-// the youtube-nocookie iframe with autoplay. Without JS the poster is a plain
-// link to the YouTube watch page, so the video stays reachable.
+// Instead a poster (local WebP) with a play control is shown. A click swaps in
+// the youtube-nocookie iframe with autoplay; if nobody clicks, the same iframe
+// (no autoplay) is injected when the frame nears the viewport, so crawlers and
+// scrolling visitors get a real on-page video. Without JS the poster is a plain
+// link to the YouTube watch page.
 import { imageSize } from '../lib/image-size';
 
 interface Props {
@@ -45,22 +47,30 @@ const watchUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
 </section>
 
 <script>
-  // Click-to-load: replace the facade with the real player and start it.
-  import { swapInPlayer } from '../lib/video-facade';
+  // The player is loaded in one of two ways, whichever comes first: a click on
+  // the poster (autoplay), or the frame coming near the viewport (no autoplay).
+  // Lighthouse never scrolls, so the initial load stays free of the third-party player.
+  import { facadeController } from '../lib/video-facade';
+  import { initWhenNear } from '../lib/lazy-init';
 
   document.querySelectorAll<HTMLElement>('.watch__frame[data-video-id]').forEach((frame) => {
     const button = frame.querySelector<HTMLButtonElement>('.watch__facade--button');
     if (!button) return;
-    button.addEventListener(
-      'click',
-      () =>
-        swapInPlayer(frame, () => document.createElement('iframe'), {
-          id: frame.dataset.videoId ?? '',
-          title: frame.dataset.videoTitle ?? '',
-          allow: frame.dataset.videoAllow ?? '',
-        }),
-      { once: true },
-    );
+    const player = facadeController(frame, () => document.createElement('iframe'), {
+      id: frame.dataset.videoId ?? '',
+      title: frame.dataset.videoTitle ?? '',
+      allow: frame.dataset.videoAllow ?? '',
+    });
+    button.addEventListener('click', () => player.click(), { once: true });
+
+    if ('IntersectionObserver' in window) {
+      initWhenNear([frame], () => player.near(), (callback, options) => new IntersectionObserver(callback, options), '600px 0px');
+    } else {
+      // No IntersectionObserver: load the player once the page is idle.
+      const idle = (window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback;
+      if (idle) idle(() => player.near());
+      else setTimeout(() => player.near(), 1500);
+    }
   });
 </script>
 

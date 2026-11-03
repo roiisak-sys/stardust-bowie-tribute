@@ -44,11 +44,11 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
           data-lightbox="eras"
           data-full={era.image}
           data-caption={captionOf(era.name)}
-          aria-label={enlargeLabel}
+          aria-label={`${enlargeLabel}: ${era.name}`}
         >
           <img
             src={era.image}
-            alt=""
+            alt={captionOf(era.name)}
             width={sizes[i].width}
             height={sizes[i].height}
             loading="lazy"

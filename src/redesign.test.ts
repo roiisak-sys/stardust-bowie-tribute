@@ -351,7 +351,7 @@ describe('Task 5 — band cards with a bio sheet', () => {
         expect(img).toMatch(/width="\d+"/);
         expect(img).toMatch(/height="\d+"/);
         expect(img).toMatch(/src="[^"]+\.webp"/);
-        expect(img).toMatch(/\salt(=""|\s|>)/);
+        expect(img).toMatch(/\salt="[^"]+"/); // descriptive alt (name, instrument)
       });
       expect((band.match(/<article[^>]*class="band__card"[^>]*data-reveal|<article[^>]*data-reveal[^>]*class="band__card"/g) ?? []).length).toBe(6);
       expect(band).toContain('data-swipe');
@@ -426,7 +426,8 @@ describe('Task 6 — Bowie eras swipe strip', () => {
         expect(t).toContain('class="zoomable"');
         expect(t).toMatch(/data-full="\/assets\/bowie\/[^"]+\.webp"/);
         expect(decode(t)).toContain(`data-caption="${caption}"`);
-        expect(t).toContain(`aria-label="${copy.ui.enlarge}"`);
+        // WCAG 2.5.3: the accessible name contains the visible label (the era name).
+        expect(decode(t)).toContain(`aria-label="${copy.ui.enlarge}: ${name}"`);
       });
       expect(section).toContain('data-swipe');
       expect((section.match(/<div[^>]*data-swipe-item/g) ?? []).length).toBe(8);
@@ -455,7 +456,7 @@ describe('Task 6 — Bowie eras swipe strip', () => {
     for (const img of imgs) {
       expect(img).toMatch(/width="\d+"/);
       expect(img).toMatch(/height="\d+"/);
-      expect(img).toMatch(/\salt(=""|\s|>)/);
+      expect(img).toMatch(/\salt="[^"]+"/); // descriptive alt (David Bowie, era)
       expect(img).toContain('loading="lazy"');
     }
   });
@@ -1308,11 +1309,14 @@ describe('Task 10b — click-to-load video facade', () => {
   describe('component source', () => {
     const script = src('src/components/WatchVideo.astro').match(/<script>([\s\S]*?)<\/script>/)![1];
 
-    it('the click script swaps in the player through the tested helper, once, from the button', () => {
+    it('the script uses the tested controller: click from the button, quiet load near the viewport', () => {
       expect(script).toContain("from '../lib/video-facade'");
+      expect(script).toContain("from '../lib/lazy-init'");
       expect(script).toContain("createElement('iframe')");
-      expect(script).toContain('swapInPlayer');
-      expect(script).toMatch(/\{\s*once:\s*true\s*\}/);
+      expect(script).toContain('facadeController');
+      expect(script).toMatch(/addEventListener\('click',\s*\(\)\s*=>\s*player\.click\(\)/);
+      expect(script).toMatch(/initWhenNear\(\[frame\],\s*\(\)\s*=>\s*player\.near\(\)[\s\S]*'600px 0px'/);
+      expect(script).toContain('requestIdleCallback'); // no-IntersectionObserver fallback
       expect(script).not.toContain('is-playing');
     });
 
@@ -1423,9 +1427,11 @@ describe('Task 10b — click-to-load video facade', () => {
 });
 
 describe('Task 10b fix round: video-facade and lazy-init logic', () => {
-  it('embedUrl: nocookie host, autoplay and playsinline', async () => {
+  it('embedUrl: nocookie host and playsinline; autoplay only when asked', async () => {
     const { embedUrl } = await import('./lib/video-facade');
     expect(embedUrl('abc')).toBe('https://www.youtube-nocookie.com/embed/abc?autoplay=1&playsinline=1');
+    expect(embedUrl('abc', true)).toBe('https://www.youtube-nocookie.com/embed/abc?autoplay=1&playsinline=1');
+    expect(embedUrl('abc', false)).toBe('https://www.youtube-nocookie.com/embed/abc?playsinline=1');
   });
 
   it('swapInPlayer builds the iframe, replaces the frame content, then focuses the player', async () => {
@@ -1477,5 +1483,122 @@ describe('Task 10b fix round: video-facade and lazy-init logic', () => {
     const inited: number[] = [];
     initWhenNear([1, 2, 3] as unknown as Element[], (t) => inited.push(t as unknown as number), null);
     expect(inited).toEqual([1, 2, 3]);
+  });
+});
+
+describe('Task 10b fix round 2: facade controller and alts', () => {
+  const makeIframe = () => {
+    const calls: string[] = [];
+    const iframe = { src: '', title: '', allow: '', allowFullscreen: false, focus: () => calls.push('focus') };
+    return { iframe, calls };
+  };
+  const data = { id: 'ID9', title: 'T', allow: 'autoplay' };
+
+  it('near the viewport: loads one iframe without autoplay, title/allow/fullscreen set, focus not taken', async () => {
+    const { facadeController } = await import('./lib/video-facade');
+    const { iframe, calls } = makeIframe();
+    const frame = { replaceChildren: (...n: unknown[]) => calls.push(`replace:${n.length}`) };
+    const c = facadeController(frame, () => iframe, data);
+    expect(c.loaded).toBe(false);
+    c.near();
+    expect(c.loaded).toBe(true);
+    expect(iframe.src).toBe('https://www.youtube-nocookie.com/embed/ID9?playsinline=1');
+    expect(iframe.src).not.toContain('autoplay');
+    expect(iframe.title).toBe('T');
+    expect(iframe.allow).toBe('autoplay');
+    expect(iframe.allowFullscreen).toBe(true);
+    expect(calls).toEqual(['replace:1']);
+  });
+
+  it('click: loads with autoplay and focuses', async () => {
+    const { facadeController } = await import('./lib/video-facade');
+    const { iframe, calls } = makeIframe();
+    const c = facadeController({ replaceChildren: () => calls.push('replace') }, () => iframe, data);
+    c.click();
+    expect(iframe.src).toBe('https://www.youtube-nocookie.com/embed/ID9?autoplay=1&playsinline=1');
+    expect(calls).toEqual(['replace', 'focus']);
+  });
+
+  it('whichever comes first wins and the player is never created twice', async () => {
+    const { facadeController } = await import('./lib/video-facade');
+    let made = 0;
+    const c = facadeController(
+      { replaceChildren: () => {} },
+      () => {
+        made++;
+        return { src: '', title: '', allow: '', allowFullscreen: false, focus: () => {} };
+      },
+      data,
+    );
+    expect(c.click()).not.toBeNull();
+    expect(c.near()).toBeNull();
+    expect(c.click()).toBeNull();
+    expect(made).toBe(1);
+
+    let made2 = 0;
+    const c2 = facadeController(
+      { replaceChildren: () => {} },
+      () => {
+        made2++;
+        return { src: '', title: '', allow: '', allowFullscreen: false, focus: () => {} };
+      },
+      data,
+    );
+    c2.near();
+    c2.click(); // a late click after the quiet load does nothing (the button is gone anyway)
+    expect(made2).toBe(1);
+  });
+
+  describe('descriptive alts of the live site are kept on the home pages', () => {
+    const read = (rel: string) => readFileSync(join(DIST, rel), 'utf-8');
+    const decodeEntities = (t: string) =>
+      t.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n))).replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
+    const members = JSON.parse(readFileSync(join(ROOT, 'src/content/band-members.json'), 'utf-8')).filter((m: { role: string }) => m.role === 'core');
+    const cases: [string, 'he' | 'en'][] = [
+      ['he/index.html', 'he'],
+      ['en/index.html', 'en'],
+      ['index.html', 'en'],
+    ];
+    for (const [rel, loc] of cases) {
+      const copy = JSON.parse(readFileSync(join(ROOT, `src/content/copy.${loc}.json`), 'utf-8'));
+      const altOf = (html: string, src: string) => {
+        const img = html.match(new RegExp(`<img[^>]*src="${src.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}"[^>]*>`))?.[0] ?? '';
+        const alt = img.match(/\salt="([^"]*)"/)?.[1];
+        return alt === undefined ? undefined : decodeEntities(alt);
+      };
+
+      it(`${rel}: each band photo's alt is "name, instrument"`, () => {
+        const html = read(rel);
+        for (const m of members) {
+          const expected = loc === 'he' ? `${m.nameHe}, ${m.instrumentHe}` : `${m.nameEn}, ${m.instrumentEn}`;
+          expect(altOf(html, m.photo), m.photo).toBe(expected);
+        }
+      });
+
+      it(`${rel}: each era photo's alt is "David Bowie, era"`, () => {
+        const html = read(rel);
+        for (const e of copy.bowies.eras as { name: string; image: string }[]) {
+          const expected = loc === 'he' ? `דיוויד בואי, ${e.name}` : `David Bowie, ${e.name}`;
+          expect(altOf(html, e.image), e.image).toBe(expected);
+        }
+      });
+
+      it(`${rel}: band card buttons are named "name, instrument" (no double announcement of photo + caption)`, () => {
+        const html = read(rel);
+        const buttons = html.match(/<button[^>]*class="band__open"[^>]*>/g) ?? [];
+        expect(buttons).toHaveLength(members.length);
+        buttons.forEach((b, i) => {
+          const m = members[i];
+          const expected = loc === 'he' ? `${m.nameHe}, ${m.instrumentHe}` : `${m.nameEn}, ${m.instrumentEn}`;
+          expect(decodeEntities(b.match(/aria-label="([^"]*)"/)![1])).toBe(expected);
+        });
+      });
+
+      it(`${rel}: the home page keeps at least the 19 non-empty alts it had before the redesign`, () => {
+        const imgs = read(rel).match(/<img[^>]*>/g) ?? [];
+        const nonEmpty = imgs.filter((t) => /\salt="[^"]+"/.test(t));
+        expect(nonEmpty.length).toBeGreaterThanOrEqual(19);
+      });
+    }
   });
 });
