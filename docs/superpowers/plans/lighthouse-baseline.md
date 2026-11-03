@@ -60,7 +60,7 @@ Every run recorded for the build at b14273c (identical code apart from the commi
 
 Pooled over those 13 runs the median is **89** (range 71-92). The three clean consecutive runs of batch D gave 92 / 92 / 92 (LCP 3.3-3.4 s, TBT 0, FCP 0.92 s, Speed Index 1.8-2.4 s), but that is one favourable batch, not a guaranteed floor.
 
-Control, the pre-redesign commit 1d98940 built in a temporary worktree and measured on the same machine: 88 / 87 / 89, then 92 / 90 / 66, then 92 / 88 / 92 / 66 / 89 in the interleaved batch C. The new build is level with the old site within noise (and has fewer TBT outliers).
+Control, the pre-redesign commit 1d98940 built in a temporary worktree and measured on the same machine: 88 / 87 / 89, then 92 / 90 / 66, then 92 / 88 / 92 / 66 / 89 in the interleaved batch C. The new build is level with the old site within noise.
 
 After the fix round (13d135e), same method:
 
