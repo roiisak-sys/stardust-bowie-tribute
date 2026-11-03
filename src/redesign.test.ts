@@ -18,6 +18,7 @@ export const GUARDED_SOURCES = [
   'src/components/Ticker.astro',
   'src/components/BandGallery.astro',
   'src/components/BandMembers.astro',
+  'src/components/BowieCollage.astro',
 ];
 
 /** Files that must exist as of Task 2. */
@@ -383,5 +384,83 @@ describe('Task 5 — band cards with a bio sheet', () => {
     expect(css).toMatch(/object-position\s*:\s*center 20%/);
     const outside = stripNoPreferenceBlocks(css);
     expect(outside).not.toMatch(/(animation|transition)\s*:/);
+  });
+});
+
+describe('Task 6 — Bowie eras swipe strip', () => {
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+  const copyHe = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.he.json'), 'utf-8'));
+  const copyEn = JSON.parse(readFileSync(join(ROOT, 'src/content/copy.en.json'), 'utf-8'));
+  const decode = (t: string) =>
+    t.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const collageOf = (html: string) =>
+    html.slice(html.indexOf('id="bowie-collage"'), html.indexOf('</section>', html.indexOf('id="bowie-collage"')));
+
+  const pages: [string, 'he' | 'en', typeof copyHe][] = [
+    ['he/index.html', 'he', copyHe],
+    ['en/index.html', 'en', copyEn],
+    ['index.html', 'en', copyEn],
+  ];
+
+  for (const [rel, loc, copy] of pages) {
+    it(`${rel} has 8 era triggers in a swipe row, each labelled and captioned`, () => {
+      const section = collageOf(read(rel));
+      const triggers = section.match(/<button[^>]*data-lightbox="eras"[^>]*>/g) ?? [];
+      expect(triggers).toHaveLength(8);
+      triggers.forEach((t, i) => {
+        const name = copy.bowies.eras[i].name as string;
+        const caption = loc === 'he' ? `דיוויד בואי, ${name}` : `David Bowie, ${name}`;
+        expect(t).toContain('type="button"');
+        expect(t).toContain('class="zoomable"');
+        expect(t).toMatch(/data-full="\/assets\/bowie\/[^"]+\.webp"/);
+        expect(decode(t)).toContain(`data-caption="${caption}"`);
+        expect(t).toContain(`aria-label="${copy.ui.enlarge}"`);
+      });
+      expect(section).toContain('data-swipe');
+      expect((section.match(/<div[^>]*data-swipe-item/g) ?? []).length).toBe(8);
+    });
+
+    it(`${rel} shows every era name once as a label, and no era line`, () => {
+      const section = decode(collageOf(read(rel)));
+      const labels = [...section.matchAll(/<span[^>]*class="collage__label[^"]*"[^>]*>([^<]*)<\/span>/g)].map((m) => m[1]);
+      expect(labels).toEqual((copy.bowies.eras as { name: string }[]).map((e) => e.name));
+      for (const era of copy.bowies.eras as { name: string; line: string }[]) {
+        expect(section).not.toContain(era.line);
+      }
+    });
+
+    it(`${rel} keeps the wordmark, heading and fragments line`, () => {
+      const section = decode(collageOf(read(rel)));
+      expect(section).toContain('bowie-wordmark.webp');
+      expect(section).toContain(copy.question.heading);
+      expect(section).toContain((copy.question.fragments as string[]).join(' · '));
+    });
+  }
+
+  it('era images carry explicit size, keep the head-preserving crop, and the first is lazy', () => {
+    const imgs = collageOf(read('he/index.html')).match(/<img[^>]*class="collage__image"[^>]*>/g) ?? [];
+    expect(imgs).toHaveLength(8);
+    for (const img of imgs) {
+      expect(img).toMatch(/width="\d+"/);
+      expect(img).toMatch(/height="\d+"/);
+      expect(img).toMatch(/\salt(=""|\s|>)/);
+      expect(img).toContain('loading="lazy"');
+    }
+  });
+
+  it('no element starts hidden: no bare opacity: 0, no GSAP, no grid cells', () => {
+    const src = readFileSync(join(ROOT, 'src/components/BowieCollage.astro'), 'utf-8');
+    expect(src).not.toContain('gsap');
+    expect(src).not.toContain('data-collage-cell');
+    expect(src).not.toContain('data-collage-grid');
+    const css = cssOf('src/components/BowieCollage.astro').replace(/\/\*[\s\S]*?\*\//g, '');
+    expect(css).not.toMatch(/opacity\s*:\s*0(?![.\d])/);
+    expect(css).toMatch(/object-position\s*:\s*center top/);
+    expect(css).toMatch(/object-position\s*:\s*50% 25%/);
+    expect(css).toMatch(/aspect-ratio\s*:\s*3\s*\/\s*4/);
   });
 });

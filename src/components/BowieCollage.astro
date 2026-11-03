@@ -1,5 +1,6 @@
 ---
 import { imageSize } from '../lib/image-size';
+import SwipeRow from './SwipeRow.astro';
 
 interface Era {
   name: string;
@@ -11,9 +12,11 @@ interface Props {
   heading: string;
   fragments: string[];
   eras: Era[];
+  enlargeLabel: string;
 }
-const { locale, heading, fragments, eras } = Astro.props;
+const { locale, heading, fragments, eras, enlargeLabel } = Astro.props;
 
+const captionOf = (name: string) => (locale === 'he' ? `דיוויד בואי, ${name}` : `David Bowie, ${name}`);
 const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
 ---
 
@@ -30,47 +33,51 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
   <h2 class="collage__heading">{heading}</h2>
   <p class="collage__fragments">{fragments.join(' · ')}</p>
 
-  <div class="collage__grid" data-collage-grid>
+  <SwipeRow label={heading}>
     {eras.map((era, i) => (
-      <div class={`collage__cell collage__cell--${i}`} data-collage-cell>
-        <img
-          src={era.image}
-          alt={locale === 'he' ? `דיוויד בואי, ${era.name}` : `David Bowie, ${era.name}`}
-          width={sizes[i].width}
-          height={sizes[i].height}
-          loading="lazy"
-          decoding="async"
-          class="collage__image"
-        />
-        <span class="collage__label label">{era.name}</span>
+      <div class={`collage__card collage__card--${i}`} data-swipe-item data-reveal>
+        <button
+          type="button"
+          class="zoomable"
+          data-lightbox="eras"
+          data-full={era.image}
+          data-caption={captionOf(era.name)}
+          aria-label={enlargeLabel}
+        >
+          <img
+            src={era.image}
+            alt=""
+            width={sizes[i].width}
+            height={sizes[i].height}
+            loading="lazy"
+            decoding="async"
+            class="collage__image"
+          />
+          <span class="collage__label label">{era.name}</span>
+        </button>
       </div>
     ))}
-  </div>
+  </SwipeRow>
 </section>
-
-<noscript>
-  <style is:global>
-    #bowie-collage .collage__cell {
-      opacity: 1 !important;
-      transform: none !important;
-    }
-  </style>
-</noscript>
 
 <style>
   .collage {
+    --swipe-item: 62%;
+    --swipe-gap: var(--space-xs);
+    --swipe-gutter: var(--space-md);
     background: var(--color-black);
     /* Top padding intentionally smaller than the bottom: the wordmark is
        the very first thing after the full-height Hero, and --space-xl
        there read as a big dead gap between the hero and the BOWIE logo. */
-    padding: var(--space-md) var(--space-md) var(--space-xl);
+    padding-block: var(--space-md) var(--space-xl);
   }
 
   .collage__wordmark {
     display: block;
-    width: min(50vw, 220px);
-    height: auto;
-    margin: 0 auto var(--space-md);
+    inline-size: min(50vw, 220px);
+    block-size: auto;
+    margin-block: 0 var(--space-md);
+    margin-inline: auto;
   }
 
   .collage__heading {
@@ -79,6 +86,7 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
     font-size: var(--size-display-md);
     text-align: center;
     margin: 0 0 var(--space-sm);
+    padding-inline: var(--space-md);
   }
 
   .collage__fragments {
@@ -88,137 +96,64 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
     text-transform: uppercase;
     text-align: center;
     opacity: 0.6;
-    margin: 0 0 var(--space-lg);
+    margin: 0 0 var(--space-md);
+    padding-inline: var(--space-md);
   }
 
-  .collage__grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: 22vh;
-    gap: var(--space-sm);
-    max-width: 72rem;
-    margin-inline: auto;
-  }
-
-  .collage__cell {
-    position: relative;
+  .collage__card {
+    aspect-ratio: 3 / 4;
     overflow: hidden;
-    opacity: 0;
-    transform: translateY(24px);
+  }
+
+  .collage__card :global(.zoomable) {
+    position: relative;
+    block-size: 100%;
   }
 
   .collage__image {
-    width: 100%;
-    height: 100%;
+    inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 3 / 4;
     object-fit: cover;
     display: block;
     filter: grayscale(1);
   }
 
+  /* Label on a bottom gradient to near black, so it reads on any photo. */
   .collage__label {
     position: absolute;
-    bottom: var(--space-xs);
-    left: var(--space-xs);
+    inset-inline: 0;
+    inset-block-end: 0;
+    padding: var(--space-lg) var(--space-sm) var(--space-sm);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0));
     color: var(--color-off-white);
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+    opacity: 1;
+    text-align: start;
+    pointer-events: none;
   }
 
-  /* Asymmetric placement, desktop: mixed spans so it reads as an editorial
-     grid rather than a uniform photo wall. Cell order matches the 8-entry
-     eras array in copy.{he,en}.json. */
-  @media (min-width: 700px) {
-    .collage__cell--0 { grid-column: span 2; grid-row: span 2; }
-    .collage__cell--1 { grid-column: span 2; grid-row: span 1; }
-    .collage__cell--2 { grid-column: span 1; grid-row: span 1; }
-    .collage__cell--3 { grid-column: span 1; grid-row: span 1; }
-    .collage__cell--4 { grid-column: span 2; grid-row: span 1; }
-    .collage__cell--5 { grid-column: span 2; grid-row: span 2; }
-    .collage__cell--6 { grid-column: span 1; grid-row: span 1; }
-    .collage__cell--7 { grid-column: span 1; grid-row: span 1; }
-  }
-
-  /* object-fit: cover's default center crop cuts heads off in several
-     cells, since these grid spans are much wider/shorter than the source
-     photos (e.g. a 3.23:1 cell holding a square portrait). Verified each
-     source image individually: all 8 are well-composed with the head near
-     the top of the frame, so a top-biased crop keeps the head intact and
-     trims from the body/background instead. cell--3 (Union Jack coat, a
-     tall portrait source in a much wider cell) was the worst case: the
-     default center crop lost the head entirely. cell--1's face sits more
-     centrally, so it gets a partial (not full) upward bias to keep both
-     the hair and the face in frame. cell--6 is close enough to its
-     source's native ratio that the default center crop needs no change. */
-  .collage__cell--0 .collage__image,
-  .collage__cell--2 .collage__image,
-  .collage__cell--3 .collage__image,
-  .collage__cell--4 .collage__image,
-  .collage__cell--5 .collage__image,
-  .collage__cell--7 .collage__image {
+  /* object-fit: cover's default center crop can cut heads off, since a few
+     source photos are taller or wider than 3:4. All 8 are well composed with
+     the head near the top of the frame, so a top-biased crop keeps the head
+     and trims the body/background. Era 1's face sits more centrally, so it
+     gets a partial upward bias to keep both hair and face in frame. Era 6 is
+     close to its source's native ratio and needs no change. */
+  .collage__card--0 .collage__image,
+  .collage__card--2 .collage__image,
+  .collage__card--3 .collage__image,
+  .collage__card--4 .collage__image,
+  .collage__card--5 .collage__image,
+  .collage__card--7 .collage__image {
     object-position: center top;
   }
 
-  .collage__cell--1 .collage__image {
+  .collage__card--1 .collage__image {
     object-position: 50% 25%;
   }
 
-  /* Mobile: two alternating widths so the asymmetry survives narrow
-     viewports instead of collapsing to a uniform single column. */
-  @media (max-width: 699px) {
-    .collage__grid {
-      grid-template-columns: 1fr;
-      grid-auto-rows: 34vh;
-    }
-    .collage__cell--0,
-    .collage__cell--2,
-    .collage__cell--4,
-    .collage__cell--6 {
-      margin-inline-end: 12%;
-    }
-    .collage__cell--1,
-    .collage__cell--3,
-    .collage__cell--5,
-    .collage__cell--7 {
-      margin-inline-start: 12%;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .collage__cell {
-      opacity: 1;
-      transform: none;
+  @media (min-width: 700px) {
+    .collage {
+      --swipe-item: 34%;
     }
   }
 </style>
-
-<script>
-  import { gsap } from 'gsap';
-  import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import { prefersReducedMotion } from '../scripts/reduced-motion';
-
-  gsap.registerPlugin(ScrollTrigger);
-
-  const cells = gsap.utils.toArray('[data-collage-cell]') as HTMLElement[];
-
-  if (prefersReducedMotion()) {
-    cells.forEach((c) => {
-      c.style.opacity = '1';
-      c.style.transform = 'none';
-    });
-  } else {
-    gsap.to(cells, {
-      opacity: 1,
-      y: 0,
-      duration: 0.6,
-      stagger: 0.08,
-      ease: 'power2.out',
-      scrollTrigger: {
-        trigger: '[data-collage-grid]',
-        start: 'top 80%',
-      },
-    });
-
-    if ('fonts' in document) {
-      document.fonts.ready.then(() => ScrollTrigger.refresh());
-    }
-  }
-</script>
