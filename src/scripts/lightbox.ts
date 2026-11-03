@@ -25,13 +25,32 @@ if (dialog) {
     if (img && !img.getAttribute('src')) img.src = img.dataset.full!;
   }
 
+  /**
+   * The dialog is named by the caption. A caption-less set (the posters) would
+   * leave it unnamed, so fall back to the trigger's own label (the "Enlarge"
+   * text) or the counter, and swap back as soon as a caption exists.
+   */
+  function nameDialog(caption: string, trigger: HTMLElement) {
+    if (caption) {
+      dialog!.setAttribute('aria-labelledby', 'lightbox-caption');
+      dialog!.removeAttribute('aria-label');
+      return;
+    }
+    dialog!.removeAttribute('aria-labelledby');
+    const label = trigger.getAttribute('aria-label') || countEl.textContent;
+    if (label) dialog!.setAttribute('aria-label', label);
+    else dialog!.removeAttribute('aria-label');
+  }
+
   /** Mark slide i as current: caption, counter, button state, and load it plus its neighbours. */
   function setCurrent(i: number) {
     if (i === current || i < 0 || i >= slides.length) return;
     current = i;
     for (const j of [i - 1, i, i + 1]) load(j);
-    captionEl.textContent = triggers[i].dataset.caption ?? '';
+    const caption = triggers[i].dataset.caption ?? '';
+    captionEl.textContent = caption;
     countEl.textContent = slides.length > 1 ? `${i + 1} / ${slides.length}` : '';
+    nameDialog(caption, triggers[i]);
     prevBtn.setAttribute('aria-disabled', String(i === 0));
     nextBtn.setAttribute('aria-disabled', String(i === slides.length - 1));
   }

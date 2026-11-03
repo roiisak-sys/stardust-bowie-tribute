@@ -4,7 +4,7 @@
 //
 // The previous / next buttons (shown by CSS only for mouse users) scroll the
 // track by whole items and disable themselves at either end.
-import { edgeState, pageStep, scrollDelta } from '../lib/swipe-nav';
+import { edgeState, pageStep, scrollDelta, scrollTarget } from '../lib/swipe-nav';
 import { prefersReducedMotion } from './reduced-motion';
 
 function initArrows(row: HTMLElement, track: HTMLElement) {
@@ -12,7 +12,24 @@ function initArrows(row: HTMLElement, track: HTMLElement) {
   const next = row.querySelector<HTMLButtonElement>('[data-swipe-next]');
   if (!prev || !next) return;
 
+  // Where the smooth scroll under way is heading. A press during it steps from
+  // here rather than from wherever the animation happens to be, so rapid presses
+  // always land on a whole item.
+  let pending: number | null = null;
+  let settle = 0;
+  const clearPending = () => {
+    pending = null;
+    clearTimeout(settle);
+  };
+  // Lenis swallows native `scrollend` events, so "the scroll stopped" is also
+  // detected as 200ms without a scroll event.
+  const armSettle = () => {
+    clearTimeout(settle);
+    settle = window.setTimeout(clearPending, 200);
+  };
+
   const sync = () => {
+    if (pending !== null && Math.abs(track.scrollLeft - pending) <= 2) clearPending();
     const { canPrev, canNext } = edgeState(track.scrollLeft, track.scrollWidth, track.clientWidth);
     const hadFocus = document.activeElement;
     prev.disabled = !canPrev;
@@ -30,16 +47,36 @@ function initArrows(row: HTMLElement, track: HTMLElement) {
     const cs = getComputedStyle(track);
     const content = track.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const step = pageStep({ pitch, content, gap: Math.max(0, pitch - first.width) });
-    track.scrollBy({
-      left: scrollDelta(which, cs.direction, step),
-      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-    });
+    const target = scrollTarget(
+      pending ?? track.scrollLeft,
+      scrollDelta(which, cs.direction, step),
+      track.scrollWidth,
+      track.clientWidth,
+      cs.direction,
+    );
+    if (Math.abs(target - track.scrollLeft) > 2) {
+      pending = target;
+      armSettle();
+    } else {
+      clearPending();
+    }
+    track.scrollTo({ left: target, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
   };
 
   prev.addEventListener('click', () => go('prev'));
   next.addEventListener('click', () => go('next'));
-  track.addEventListener('scroll', sync, { passive: true });
-  window.addEventListener('resize', sync);
+  track.addEventListener(
+    'scroll',
+    () => {
+      sync();
+      if (pending !== null) armSettle();
+    },
+    { passive: true },
+  );
+  // The scroll came to rest (or the user took over): the next press starts from where the row is.
+  track.addEventListener('scrollend', clearPending);
+  track.addEventListener('pointerdown', clearPending);
+  track.addEventListener('wheel', clearPending, { passive: true });
   if ('ResizeObserver' in window) new ResizeObserver(sync).observe(track);
   sync();
 }

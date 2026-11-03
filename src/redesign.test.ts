@@ -144,9 +144,11 @@ describe('Task 3 — opening pill, ticker and action bar', () => {
     it(`${rel} has the action bar (WhatsApp + #watch) and no floating button`, () => {
       const html = read(rel);
       expect(html).toContain('class="action-bar"');
-      const bar = html.slice(html.indexOf('class="action-bar"'));
-      expect(bar).toContain('https://wa.me/');
-      expect(bar).toContain('href="#watch"');
+      // The bar element itself (it holds only links, svg and spans, so the first </div> closes it).
+      const bar = html.match(/<div[^>]*class="action-bar"[^>]*>[\s\S]*?<\/div>/)?.[0];
+      expect(bar).toBeDefined();
+      expect(bar).toMatch(/<a[^>]*class="action-bar__wa"[^>]*href="https:\/\/wa\.me\/|<a[^>]*href="https:\/\/wa\.me\/[^"]*"[^>]*class="action-bar__wa"/);
+      expect(bar).toMatch(/<a[^>]*class="action-bar__play"[^>]*href="#watch"|<a[^>]*href="#watch"[^>]*class="action-bar__play"/);
       expect(html).not.toContain('id="floating-whatsapp"');
     });
 
@@ -494,9 +496,10 @@ describe('Task 7 — upcoming show as a ticket card', () => {
     ticketUrl: string;
     eventUrl: string;
   }[];
-  const today = new Date().toISOString().slice(0, 10);
+  // The component renders every show whose status is 'upcoming' (it never compares
+  // dates), so the test does the same and never reads the clock.
   const next = shows
-    .filter((s) => s.status === 'upcoming' && s.dateISO >= today)
+    .filter((s) => s.status === 'upcoming')
     .sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0];
 
   const pages: [string, 'he' | 'en', typeof copyHe][] = [
@@ -510,7 +513,7 @@ describe('Task 7 — upcoming show as a ticket card', () => {
       const section = decode(upcomingOf(read(rel)));
       expect(section).toContain(copy.upcomingShows.heading);
       expect(section).toMatch(/<div[^>]*class="ticket[ "]/);
-      const [year, month, day] = next!.dateISO.split('-');
+      const [year, , day] = next!.dateISO.split('-');
       expect(section).toMatch(/class="ticket__date[ "]/);
       expect(section).toContain(`datetime="${next!.dateISO}"`);
       expect(section).toMatch(/<time[^>]*class="ticket__date/);
@@ -520,7 +523,6 @@ describe('Task 7 — upcoming show as a ticket card', () => {
         .toLocaleDateString(loc === 'he' ? 'he-IL' : 'en-US', { month: 'short', timeZone: 'UTC' })
         .toUpperCase();
       expect(section).toMatch(new RegExp(`class="ticket__month[^"]*"[^>]*>\\s*${expectedMonth}\\s*<`));
-      expect(Number(month)).toBeGreaterThan(0);
       expect(section).toContain(loc === 'he' ? next!.venueHe : next!.venueEn);
       expect(section).toContain(loc === 'he' ? next!.cityHe : next!.cityEn);
       const cta = section.match(/<a[^>]*class="[^"]*\bticket__cta\b[^"]*"[^>]*>[\s\S]*?<\/a>/);
@@ -555,6 +557,16 @@ describe('Task 7 — upcoming show as a ticket card', () => {
     expect(rule).not.toBeNull();
     expect(rule![1]).toMatch(/background\s*:\s*var\(--color-accent-orange/);
     expect(rule![1]).toMatch(/color\s*:\s*var\(--color-black/);
+  });
+
+  it('the poster stays uncropped: auto height, no object-fit cover, no fixed aspect ratio', () => {
+    const css = cssOf('src/components/UpcomingShows.astro').replace(/\/\*[\s\S]*?\*\//g, '');
+    const rules = [...css.matchAll(/([^{}]*)\{([^{}]*)\}/g)].filter((r) => /\.ticket__poster(?![\w-])/.test(r[1]));
+    expect(rules.length).toBeGreaterThan(0);
+    const body = rules.map((r) => r[2]).join(';');
+    expect(body).toMatch(/block-size\s*:\s*auto/);
+    expect(body).not.toMatch(/object-fit\s*:\s*cover/);
+    expect(body).not.toMatch(/aspect-ratio\s*:/);
   });
 
   it('the component keeps the empty state (class and WhatsApp CTA) and all its props', () => {
@@ -941,9 +953,9 @@ describe('Task 9a — reveal motion, desktop widths and mouse reachability', () 
       expect(s).toMatch(/nextLabel\s*:\s*string/);
     });
 
-    it('the script scrolls with scrollBy and picks smooth/auto from reduced motion', () => {
+    it('the script scrolls with scrollTo and picks smooth/auto from reduced motion', () => {
       const s = src('src/scripts/swipe-row.ts');
-      expect(s).toContain('scrollBy');
+      expect(s).toContain('scrollTo');
       expect(s).toContain('prefersReducedMotion');
       expect(s).toMatch(/'auto'/);
       expect(s).toMatch(/'smooth'/);
@@ -970,6 +982,36 @@ describe('Task 9a — reveal motion, desktop widths and mouse reachability', () 
         expect(edgeState(-0, 1000, 400)).toEqual({ canPrev: false, canNext: true });
       });
 
+      it('edge state treats the last 2px at either end as the end, 3px as still travel', async () => {
+        const { edgeState } = await import('./lib/swipe-nav');
+        // 600 of travel
+        expect(edgeState(598, 1000, 400)).toEqual({ canPrev: true, canNext: false });
+        expect(edgeState(597, 1000, 400)).toEqual({ canPrev: true, canNext: true });
+        expect(edgeState(2, 1000, 400)).toEqual({ canPrev: false, canNext: true });
+        expect(edgeState(3, 1000, 400)).toEqual({ canPrev: true, canNext: true });
+        expect(edgeState(-598, 1000, 400)).toEqual({ canPrev: true, canNext: false });
+        expect(edgeState(-597, 1000, 400)).toEqual({ canPrev: true, canNext: true });
+        // a row with only 2px of overflow has no travel at all
+        expect(edgeState(0, 402, 400)).toEqual({ canPrev: false, canNext: false });
+        expect(edgeState(0, 403, 400)).toEqual({ canPrev: false, canNext: true });
+      });
+
+      it('a press during a smooth scroll steps from the pending target, clamped to the travel', async () => {
+        const { scrollTarget } = await import('./lib/swipe-nav');
+        // 600 of travel, one step is 300
+        expect(scrollTarget(0, 300, 1000, 400, 'ltr')).toBe(300);
+        expect(scrollTarget(300, 300, 1000, 400, 'ltr')).toBe(600);
+        expect(scrollTarget(600, 300, 1000, 400, 'ltr')).toBe(600);
+        expect(scrollTarget(100, -300, 1000, 400, 'ltr')).toBe(0);
+        // RTL runs from 0 down to -600
+        expect(scrollTarget(0, -300, 1000, 400, 'rtl')).toBe(-300);
+        expect(scrollTarget(-300, -300, 1000, 400, 'rtl')).toBe(-600);
+        expect(scrollTarget(-600, -300, 1000, 400, 'rtl')).toBe(-600);
+        expect(scrollTarget(-100, 300, 1000, 400, 'rtl')).toBe(0);
+        // nothing to scroll
+        expect(scrollTarget(0, 300, 400, 400, 'ltr')).toBe(0);
+      });
+
       it('a row that fits has no travel in either direction', async () => {
         const { edgeState } = await import('./lib/swipe-nav');
         expect(edgeState(0, 400, 400)).toEqual({ canPrev: false, canNext: false });
@@ -984,6 +1026,109 @@ describe('Task 9a — reveal motion, desktop widths and mouse reachability', () 
         // never zero
         expect(pageStep({ pitch: 500, content: 100, gap: 0 })).toBe(500);
       });
+    });
+  });
+});
+
+describe('Task 9b — carried review fixes', () => {
+  const src = (rel: string) => readFileSync(join(ROOT, rel), 'utf-8');
+  const noComments = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, '');
+  /** Declaration bodies of every rule whose selector list mentions `needle` (comments removed). */
+  const bodiesFor = (css: string, needle: RegExp) =>
+    [...noComments(css).matchAll(/([^{}]*)\{([^{}]*)\}/g)].filter((r) => needle.test(r[1])).map((r) => r[2]);
+  /** The text of the <script> block of an .astro file. */
+  const scriptOf = (rel: string) => src(rel).match(/<script>([\s\S]*?)<\/script>/)![1];
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+
+  describe('action bar lets taps through its gradient', () => {
+    const css = cssOf('src/components/ActionBar.astro');
+
+    it('the full-width bar ignores pointer events', () => {
+      const bodies = bodiesFor(css, /(^|[\s,])\.action-bar\s*$/);
+      expect(bodies.some((b) => /pointer-events\s*:\s*none/.test(b))).toBe(true);
+    });
+
+    it('the WhatsApp and play links take pointer events back', () => {
+      for (const cls of ['action-bar__wa', 'action-bar__play']) {
+        const bodies = bodiesFor(css, new RegExp(`\\.${cls}\\s*$`));
+        expect(bodies.some((b) => /pointer-events\s*:\s*auto/.test(b)), cls).toBe(true);
+      }
+    });
+  });
+
+  describe('lightbox counter and dialog name', () => {
+    it('the counter is a left-to-right island so it reads "3 / 12" in RTL too', () => {
+      for (const rel of ['he/index.html', 'en/index.html']) {
+        const count = read(rel).match(/<p[^>]*class="lightbox__count"[^>]*>/);
+        expect(count, rel).not.toBeNull();
+        expect(count![0]).toMatch(/\sdir="ltr"/);
+      }
+      expect(src('src/components/Lightbox.astro')).toMatch(/<p[^>]*class="lightbox__count"[^>]*dir="ltr"/);
+    });
+
+    it('the dialog starts named by the caption', () => {
+      for (const rel of ['he/index.html', 'en/index.html']) {
+        const dialog = read(rel).match(/<dialog[^>]*id="lightbox"[^>]*>/)![0];
+        expect(dialog, rel).toContain('aria-labelledby="lightbox-caption"');
+      }
+    });
+
+    it('with an empty caption the script names the dialog from the trigger label or counter and drops aria-labelledby', () => {
+      const s = src('src/scripts/lightbox.ts');
+      expect(s).toMatch(/dialog!?\.removeAttribute\('aria-labelledby'\)/);
+      expect(s).toMatch(/dialog!?\.setAttribute\('aria-label',/);
+      expect(s).toMatch(/getAttribute\('aria-label'\)/);
+      // ...and restores the caption reference (and drops the fallback label) when a caption exists
+      expect(s).toMatch(/dialog!?\.setAttribute\('aria-labelledby',\s*'lightbox-caption'\)/);
+      expect(s).toMatch(/dialog!?\.removeAttribute\('aria-label'\)/);
+    });
+
+    it('the naming runs whenever the current slide changes', () => {
+      const s = src('src/scripts/lightbox.ts');
+      const fn = s.match(/function setCurrent\([^)]*\)\s*\{([\s\S]*?)\n {2}\}\n/);
+      expect(fn).not.toBeNull();
+      expect(fn![1]).toMatch(/nameDialog\(/);
+    });
+  });
+
+  describe('band sheet script', () => {
+    const script = scriptOf('src/components/BandMembers.astro');
+
+    it('locks the page only after showModal() has succeeded', () => {
+      const open = script.indexOf('sheet.showModal()');
+      expect(open).toBeGreaterThan(-1);
+      expect(script.indexOf("classList.add('band-sheet-open')")).toBeGreaterThan(open);
+      expect(script.indexOf('setSmoothScrollPaused(true)')).toBeGreaterThan(open);
+    });
+
+    it('a drag that starts in the panel and ends on the backdrop does not close the sheet', () => {
+      expect(script).toMatch(/addEventListener\('pointerdown'/);
+      const click = script.match(/sheet\.addEventListener\('click',[\s\S]*?\n {4}\}\);/)![0];
+      // closes only when the click target is the dialog AND the press began on the dialog
+      expect(click).toMatch(/e\.target === sheet\s*&&\s*pressedOnBackdrop|pressedOnBackdrop\s*&&\s*e\.target === sheet/);
+      const down = script.match(/addEventListener\('pointerdown',[\s\S]*?\n {4}\}\);/)![0];
+      expect(down).toMatch(/pressedOnBackdrop\s*=\s*e\.target === sheet/);
+    });
+  });
+
+  describe('swipe row buttons', () => {
+    const s = src('src/scripts/swipe-row.ts');
+
+    it('steps from a stored target so rapid presses never land mid-item', () => {
+      expect(s).toContain('scrollTarget');
+      expect(s).toMatch(/pending/);
+      expect(s).toContain('scrollend');
+      // Lenis swallows native scrollend events, so a quiet-scroll timeout is the fallback.
+      expect(s).toMatch(/setTimeout\(clearPending,\s*\d+\)/);
+    });
+
+    it('relies on the ResizeObserver alone: no window resize listener', () => {
+      expect(s).not.toMatch(/addEventListener\(\s*'resize'/);
+      expect(s).toContain('new ResizeObserver');
     });
   });
 });

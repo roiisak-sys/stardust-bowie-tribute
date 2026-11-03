@@ -341,19 +341,27 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
         nameEl.textContent = card.querySelector('.band__name')?.textContent ?? '';
         instrumentEl.textContent = card.querySelector('.band__instrument')?.textContent ?? '';
         bioEl.textContent = card.querySelector('.band__bio')?.textContent ?? '';
+        // Lock only once the dialog is really open: a throwing showModal() must not leave a stuck lock.
+        sheet.showModal();
         opener = btn;
         document.documentElement.classList.add('band-sheet-open');
         setSmoothScrollPaused(true);
-        sheet.showModal();
         panel.scrollTop = 0;
       });
     });
 
     closeBtn.addEventListener('click', () => sheet.close());
 
-    // Only the backdrop can be the target: the dialog itself has no padding.
+    // Only the backdrop can be the target: the dialog itself has no padding. A
+    // text-selection drag that starts in the panel and ends on the backdrop also
+    // clicks the dialog, so the press must have begun on the backdrop too.
+    let pressedOnBackdrop = false;
+    sheet.addEventListener('pointerdown', (e) => {
+      pressedOnBackdrop = e.target === sheet;
+    });
     sheet.addEventListener('click', (e) => {
-      if (e.target === sheet) sheet.close();
+      if (e.target === sheet && pressedOnBackdrop) sheet.close();
+      pressedOnBackdrop = false;
     });
 
     // Fires for Escape, the close button and the backdrop alike.

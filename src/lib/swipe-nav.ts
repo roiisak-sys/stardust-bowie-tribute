@@ -8,14 +8,31 @@ export function scrollDelta(which: 'prev' | 'next', direction: string, step: num
 }
 
 /**
+ * Where one press should end: the step is added to `base` (the pending target
+ * of a smooth scroll still under way, else the current position) and clamped to
+ * the row's travel, which runs 0..max in LTR and 0..-max in RTL.
+ */
+export function scrollTarget(
+  base: number,
+  delta: number,
+  scrollWidth: number,
+  clientWidth: number,
+  direction: string,
+): number {
+  const max = Math.max(0, scrollWidth - clientWidth);
+  const [lo, hi] = direction === 'rtl' ? [-max, 0] : [0, max];
+  return Math.min(hi, Math.max(lo, base + delta));
+}
+
+/**
  * Which directions the row can still travel. RTL rows report a zero or negative
- * scrollLeft, so only its magnitude counts. Half a pixel of slack absorbs
+ * scrollLeft, so only its magnitude counts. Two pixels of slack absorb
  * sub-pixel rounding at the ends.
  */
 export function edgeState(scrollLeft: number, scrollWidth: number, clientWidth: number) {
   const max = Math.max(0, scrollWidth - clientWidth);
   const pos = Math.abs(scrollLeft);
-  return { canPrev: pos > 1 && max > 1, canNext: max > 1 && pos < max - 1 };
+  return { canPrev: pos > 2 && max > 2, canNext: max > 2 && pos < max - 2 };
 }
 
 /**
