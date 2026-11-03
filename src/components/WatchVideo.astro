@@ -46,21 +46,19 @@ const watchUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
 
 <script>
   // Click-to-load: replace the facade with the real player and start it.
+  import { swapInPlayer } from '../lib/video-facade';
+
   document.querySelectorAll<HTMLElement>('.watch__frame[data-video-id]').forEach((frame) => {
     const button = frame.querySelector<HTMLButtonElement>('.watch__facade--button');
     if (!button) return;
     button.addEventListener(
       'click',
-      () => {
-        const iframe = document.createElement('iframe');
-        iframe.src = `https://www.youtube-nocookie.com/embed/${frame.dataset.videoId}?autoplay=1`;
-        iframe.title = frame.dataset.videoTitle ?? '';
-        iframe.allow = frame.dataset.videoAllow ?? '';
-        iframe.allowFullscreen = true;
-        frame.replaceChildren(iframe);
-        frame.classList.add('is-playing');
-        iframe.focus();
-      },
+      () =>
+        swapInPlayer(frame, () => document.createElement('iframe'), {
+          id: frame.dataset.videoId ?? '',
+          title: frame.dataset.videoTitle ?? '',
+          allow: frame.dataset.videoAllow ?? '',
+        }),
       { once: true },
     );
   });
@@ -68,17 +66,9 @@ const watchUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
 
 <style>
   .watch {
-    content-visibility: auto;
-    contain-intrinsic-block-size: auto 416px;
     background: var(--color-black);
     padding-block: var(--space-xl);
     padding-inline: var(--space-md);
-  }
-
-  @media (min-width: 1000px) {
-    .watch {
-      contain-intrinsic-block-size: auto 778px;
-    }
   }
 
   .watch__heading {
@@ -97,7 +87,9 @@ const watchUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
     background: var(--color-charcoal);
   }
 
-  .watch__frame iframe {
+  /* The iframe is created by the click script, so it has no Astro scope
+     attribute: :global() keeps this rule from being tied to one. */
+  .watch__frame :global(iframe) {
     position: absolute;
     inset: 0;
     inline-size: 100%;

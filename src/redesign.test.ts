@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ROOT = process.cwd();
@@ -12,6 +12,7 @@ const DIST = join(ROOT, 'dist');
  */
 export const GUARDED_SOURCES = [
   'src/styles/motion.css',
+  'src/styles/section-size.css',
   'src/components/SwipeRow.astro',
   'src/components/Lightbox.astro',
   'src/components/ActionBar.astro',
@@ -1307,17 +1308,12 @@ describe('Task 10b — click-to-load video facade', () => {
   describe('component source', () => {
     const script = src('src/components/WatchVideo.astro').match(/<script>([\s\S]*?)<\/script>/)![1];
 
-    it('the click script builds the nocookie embed with autoplay=1, title, allow and fullscreen', () => {
-      expect(script).toContain('youtube-nocookie.com/embed/');
-      expect(script).toContain('autoplay=1');
-      expect(script).toContain('createElement(\'iframe\')');
-      expect(script).toContain('iframe.title');
-      expect(script).toContain('iframe.allow');
-      expect(script).toContain('allowFullscreen');
-    });
-
-    it('moves focus to the player after the swap', () => {
-      expect(script).toContain('iframe.focus()');
+    it('the click script swaps in the player through the tested helper, once, from the button', () => {
+      expect(script).toContain("from '../lib/video-facade'");
+      expect(script).toContain("createElement('iframe')");
+      expect(script).toContain('swapInPlayer');
+      expect(script).toMatch(/\{\s*once:\s*true\s*\}/);
+      expect(script).not.toContain('is-playing');
     });
 
     it('shows the button only with JS and hides the link then (the .js class comes from the head script)', () => {
@@ -1325,6 +1321,36 @@ describe('Task 10b — click-to-load video facade', () => {
       expect(css).toMatch(/\.watch__facade--button\s*\{\s*display:\s*none/);
       expect(css).toMatch(/:global\(\.js\)\s+\.watch__facade--link\s*\{\s*display:\s*none/);
       expect(css).toMatch(/:global\(\.js\)\s+\.watch__facade--button\s*\{\s*display:\s*flex/);
+    });
+  });
+
+  describe('the player iframe is created at runtime, so its styles must not be Astro-scoped', () => {
+    const builtCss = () => {
+      const dirPath = join(DIST, '_astro');
+      const files = readdirSync(dirPath).filter((f) => f.endsWith('.css'));
+      const inline = [...read('he/index.html').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]);
+      return [...files.map((f) => readFileSync(join(dirPath, f), 'utf-8')), ...inline].join('\n');
+    };
+
+    it('the source uses :global(iframe) for the frame rule', () => {
+      expect(cssOf('src/components/WatchVideo.astro')).toMatch(/\.watch__frame\s+:global\(iframe\)\s*\{/);
+    });
+
+    it('the built CSS has an iframe rule for .watch__frame whose iframe part carries no data-astro-cid', () => {
+      const css = builtCss();
+      const rule = [...css.matchAll(/([^{}]*\.watch__frame[^{}]*)\{([^{}]*)\}/g)].find((m) => /\biframe\b/.test(m[1]));
+      expect(rule, 'rule for .watch__frame iframe in dist').toBeDefined();
+      for (const sel of rule![1].split(',')) {
+        expect(sel).toMatch(/\.watch__frame/);
+        // A scoped rule reads `iframe[data-astro-cid-xxx]`; a runtime-created iframe has no such attribute.
+        expect(sel).not.toMatch(/iframe\s*\[data-astro-cid/);
+      }
+      const body = rule![2];
+      expect(body).toMatch(/position\s*:\s*absolute/);
+      expect(body).toMatch(/inset\s*:\s*0/);
+      expect(body).toMatch(/inline-size\s*:\s*100%/);
+      expect(body).toMatch(/block-size\s*:\s*100%/);
+      expect(body).toMatch(/border\s*:\s*0/);
     });
   });
 
@@ -1338,26 +1364,29 @@ describe('Task 10b — click-to-load video facade', () => {
 
   describe('off-screen sections and rows stay quiet during the initial load', () => {
     const noComments = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, '');
-    const sections: [string, string][] = [
-      ['src/components/BandMembers.astro', 'band'],
-      ['src/components/BowieCollage.astro', 'collage'],
-      ['src/components/UpcomingShows.astro', 'upcoming'],
-      ['src/components/PastShows.astro', 'past'],
-      ['src/components/WatchVideo.astro', 'watch'],
-      ['src/components/ExploreLinks.astro', 'explore'],
-      ['src/components/FinalScene.astro', 'final'],
-    ];
+    const sizeCss = noComments(src('src/styles/section-size.css'));
+    const classes = ['band', 'collage', 'watch', 'upcoming', 'past', 'explore', 'final'];
 
-    for (const [path, cls] of sections) {
-      it(`${path} uses content-visibility: auto with a logical intrinsic size`, () => {
-        const css = noComments(cssOf(path));
-        const rule = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find((r) => r[1].trim() === `.${cls}`);
-        expect(rule, `.${cls} rule`).toBeDefined();
-        expect(rule![2]).toMatch(/content-visibility\s*:\s*auto/);
-        expect(rule![2]).toMatch(/contain-intrinsic-block-size\s*:\s*auto\s+\d+px/);
-        expect(css).not.toMatch(/contain-intrinsic-(?:width|height)|contain-intrinsic-size/);
-      });
-    }
+    it('section-size.css gives every off-screen section content-visibility: auto', () => {
+      const rule = [...sizeCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find((r) => /content-visibility\s*:\s*auto/.test(r[2]))!;
+      for (const c of classes) expect(rule[1], c).toMatch(new RegExp(`\\.${c}(?![\\w-])`));
+    });
+
+    it('each section has estimates at the base width, 700px and 1000px (logical property only)', () => {
+      for (const c of classes) {
+        const re = new RegExp(`(?:html\\[lang='en'\\]\\s+)?\\.${c}\\s*\\{\\s*contain-intrinsic-block-size\\s*:\\s*auto\\s+(?:\\d+px|calc\\([^)]*\\))`, 'g');
+        expect((sizeCss.match(re) ?? []).length, c).toBeGreaterThanOrEqual(4);
+      }
+      expect(sizeCss).toMatch(/@media \(min-width: 700px\)/);
+      expect(sizeCss).toMatch(/@media \(min-width: 1000px\)/);
+      expect(sizeCss).not.toMatch(/contain-intrinsic-(?:width|height)\b|contain-intrinsic-size/);
+    });
+
+    it('no component sets its own content-visibility (one table, one place to re-measure)', () => {
+      for (const p of ['BandMembers', 'BowieCollage', 'WatchVideo', 'UpcomingShows', 'PastShows', 'ExploreLinks', 'FinalScene']) {
+        expect(cssOf(`src/components/${p}.astro`), p).not.toContain('content-visibility');
+      }
+    });
 
     it('the hero, gallery and story are not content-visibility sections (first paint, GSAP trigger)', () => {
       for (const p of ['src/components/Hero.astro', 'src/components/BandGallery.astro', 'src/components/BowieStory.astro']) {
@@ -1370,11 +1399,11 @@ describe('Task 10b — click-to-load video facade', () => {
       expect(src('src/components/BandMembers.astro')).toMatch(/<dialog id="band-sheet"/);
     });
 
-    it('swipe rows are set up when they near the viewport, with an immediate fallback', () => {
-      const s = src('src/scripts/swipe-row.ts');
-      expect(s).toMatch(/new IntersectionObserver\([\s\S]*rootMargin/);
-      expect(s).toContain('waiting.unobserve');
-      expect(s).toMatch(/else \{\s*rows\.forEach\(init\)/);
+    it('swipe-row.ts initialises rows through initWhenNear with an IntersectionObserver factory or null', () => {
+      const s2 = src('src/scripts/swipe-row.ts');
+      expect(s2).toContain("from '../lib/lazy-init'");
+      expect(s2).toMatch(/initWhenNear\(\s*document\.querySelectorAll<HTMLElement>\('\[data-swipe\]'\),\s*init,/);
+      expect(s2).toMatch(/'IntersectionObserver' in window/);
     });
 
     for (const rel of pages) {
@@ -1390,5 +1419,63 @@ describe('Task 10b — click-to-load video facade', () => {
         }
       });
     }
+  });
+});
+
+describe('Task 10b fix round: video-facade and lazy-init logic', () => {
+  it('embedUrl: nocookie host, autoplay and playsinline', async () => {
+    const { embedUrl } = await import('./lib/video-facade');
+    expect(embedUrl('abc')).toBe('https://www.youtube-nocookie.com/embed/abc?autoplay=1&playsinline=1');
+  });
+
+  it('swapInPlayer builds the iframe, replaces the frame content, then focuses the player', async () => {
+    const { swapInPlayer } = await import('./lib/video-facade');
+    const calls: string[] = [];
+    const frame = { replaceChildren: (...n: unknown[]) => calls.push(`replace:${n.length}`) };
+    const made = { src: '', title: '', allow: '', allowFullscreen: false, focus: () => calls.push('focus') };
+    const out = swapInPlayer(frame, () => made, { id: 'ID1', title: 'T', allow: 'autoplay; picture-in-picture' });
+    expect(out).toBe(made);
+    expect(made.src).toBe('https://www.youtube-nocookie.com/embed/ID1?autoplay=1&playsinline=1');
+    expect(made.title).toBe('T');
+    expect(made.allow).toBe('autoplay; picture-in-picture');
+    expect(made.allowFullscreen).toBe(true);
+    expect(calls).toEqual(['replace:1', 'focus']);
+  });
+
+  it('initWhenNear waits for intersection, inits each target once and stops observing it', async () => {
+    const { initWhenNear } = await import('./lib/lazy-init');
+    const a = { id: 'a' } as unknown as Element;
+    const b = { id: 'b' } as unknown as Element;
+    let cb: (e: { isIntersecting: boolean; target: Element }[]) => void = () => {};
+    const observed: Element[] = [];
+    const unobserved: Element[] = [];
+    let opts: { rootMargin: string } | undefined;
+    const inited: Element[] = [];
+    initWhenNear(
+      [a, b],
+      (t) => inited.push(t),
+      (c, o) => {
+        cb = c;
+        opts = o;
+        return { observe: (t) => observed.push(t), unobserve: (t) => unobserved.push(t) };
+      },
+    );
+    expect(observed).toEqual([a, b]);
+    expect(opts).toEqual({ rootMargin: '300px 0px' });
+    expect(inited).toEqual([]);
+    cb([{ isIntersecting: false, target: a }]);
+    expect(inited).toEqual([]);
+    cb([{ isIntersecting: true, target: b }]);
+    expect(inited).toEqual([b]);
+    expect(unobserved).toEqual([b]);
+    cb([{ isIntersecting: true, target: a }]);
+    expect(inited).toEqual([b, a]);
+  });
+
+  it('initWhenNear initialises everything immediately without IntersectionObserver', async () => {
+    const { initWhenNear } = await import('./lib/lazy-init');
+    const inited: number[] = [];
+    initWhenNear([1, 2, 3] as unknown as Element[], (t) => inited.push(t as unknown as number), null);
+    expect(inited).toEqual([1, 2, 3]);
   });
 });

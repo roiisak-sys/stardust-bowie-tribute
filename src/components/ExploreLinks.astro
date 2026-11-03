@@ -34,8 +34,6 @@ const { locale, heading, intro, items } = Astro.props;
 
 <style>
   .explore {
-    content-visibility: auto;
-    contain-intrinsic-block-size: auto 1177px;
     background: var(--color-black);
     padding-block: var(--space-xl);
     padding-inline: var(--space-md);
@@ -104,7 +102,6 @@ const { locale, heading, intro, items } = Astro.props;
   /* Desktop: the same 72rem column as the swipe rows. */
   @media (min-width: 1000px) {
     .explore {
-      contain-intrinsic-block-size: auto 572px;
     }
 
     .explore__grid {

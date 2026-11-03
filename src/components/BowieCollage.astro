@@ -64,11 +64,6 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
 
 <style>
   .collage {
-    /* Off-screen sections are not rendered, so their lazy images stay unloaded
-       until the section nears the viewport (keeps the initial load light).
-       The size is a first-paint estimate; `auto` remembers the real one. */
-    content-visibility: auto;
-    contain-intrinsic-block-size: auto 752px;
     --swipe-item: 62%;
     --swipe-gap: var(--space-xs);
     background: var(--color-black);
@@ -166,7 +161,6 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
   /* Exactly four per view: a quarter of the room left after three gaps. */
   @media (min-width: 1000px) {
     .collage {
-      contain-intrinsic-block-size: auto 864px;
       --swipe-item: calc((100% - 3 * var(--swipe-gap)) / 4);
     }
   }

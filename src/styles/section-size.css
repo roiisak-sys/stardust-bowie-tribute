@@ -1,0 +1,78 @@
+/*
+ * Off-screen sections are skipped by the browser (content-visibility: auto)
+ * until they near the viewport, so their lazy images do not load during the
+ * initial load. A skipped section has no height of its own, so each one gets an
+ * estimate of its content height (the section padding comes on top; `auto`
+ * then remembers the real size once it has rendered). The estimates are
+ * straight-line fits of the real rendered heights, measured at 320-1920px wide
+ * in Hebrew and English, and stay within 6% of the real height at every width
+ * measured. Breakpoints: 700px and 1000px (the layout ones), 1280px (where the
+ * layouts stop growing) and, for the explore grid, 525px (where its columns
+ * change). English text is longer, so a few sections have English values
+ * (selected by the lang attribute). Re-measure when a section's layout changes.
+ */
+
+.band,
+.collage,
+.watch,
+.upcoming,
+.past,
+.explore,
+.final {
+  content-visibility: auto;
+}
+
+.band { contain-intrinsic-block-size: auto calc(360px + 59.02vw); }
+html[lang='en'] .band { contain-intrinsic-block-size: auto calc(445px + 49vw); }
+.collage { contain-intrinsic-block-size: auto calc(318px + 88.2vw); }
+.watch { contain-intrinsic-block-size: auto calc(37px + 58.29vw); }
+.upcoming { contain-intrinsic-block-size: auto calc(438px + 41.82vw); }
+.past { contain-intrinsic-block-size: auto calc(152px + 64.88vw); }
+.explore { contain-intrinsic-block-size: auto calc(1335px - 72.77vw); }
+html[lang='en'] .explore { contain-intrinsic-block-size: auto calc(1716px - 145.62vw); }
+.final { contain-intrinsic-block-size: auto calc(916px - 10.05vw); }
+html[lang='en'] .final { contain-intrinsic-block-size: auto calc(1033px - 25.52vw); }
+
+@media (min-width: 525px) {
+  .explore { contain-intrinsic-block-size: auto calc(941px - 49.98vw); }
+  html[lang='en'] .explore { contain-intrinsic-block-size: auto calc(971px - 41.22vw); }
+}
+
+@media (min-width: 700px) {
+  .band { contain-intrinsic-block-size: auto calc(133px + 50.84vw); }
+  html[lang='en'] .band { contain-intrinsic-block-size: auto calc(161px + 50.55vw); }
+  .collage { contain-intrinsic-block-size: auto calc(342px + 49.2vw); }
+  .watch { contain-intrinsic-block-size: auto calc(36px + 58.06vw); }
+  .upcoming { contain-intrinsic-block-size: auto calc(638px + 10.4vw); }
+  .past { contain-intrinsic-block-size: auto calc(107px + 39.74vw); }
+  .explore { contain-intrinsic-block-size: auto calc(771px - 23.59vw); }
+  html[lang='en'] .explore { contain-intrinsic-block-size: auto calc(859px - 26.21vw); }
+  .final { contain-intrinsic-block-size: auto calc(820px + 3.41vw); }
+  html[lang='en'] .final { contain-intrinsic-block-size: auto calc(920px - 0.43vw); }
+}
+
+@media (min-width: 1000px) {
+  .band { contain-intrinsic-block-size: auto calc(280px + 19.21vw); }
+  html[lang='en'] .band { contain-intrinsic-block-size: auto calc(305px + 19.27vw); }
+  .collage { contain-intrinsic-block-size: auto calc(510px + 20.85vw); }
+  .watch { contain-intrinsic-block-size: auto calc(594px + 1.96vw); }
+  .upcoming { contain-intrinsic-block-size: auto calc(652px + 9.21vw); }
+  .past { contain-intrinsic-block-size: auto calc(243px + 13.29vw); }
+  .explore { contain-intrinsic-block-size: auto calc(1015px - 47.11vw); }
+  html[lang='en'] .explore { contain-intrinsic-block-size: auto calc(940px - 35.89vw); }
+  .final { contain-intrinsic-block-size: auto calc(744px + 13.15vw); }
+  html[lang='en'] .final { contain-intrinsic-block-size: auto calc(786px + 15.11vw); }
+}
+
+@media (min-width: 1280px) {
+  .band { contain-intrinsic-block-size: auto 543px; }
+  html[lang='en'] .band { contain-intrinsic-block-size: auto 570px; }
+  .collage { contain-intrinsic-block-size: auto 771px; }
+  .watch { contain-intrinsic-block-size: auto 618px; }
+  .upcoming { contain-intrinsic-block-size: auto 769px; }
+  .past { contain-intrinsic-block-size: auto 409px; }
+  .explore { contain-intrinsic-block-size: auto 415px; }
+  html[lang='en'] .explore { contain-intrinsic-block-size: auto 467px; }
+  .final { contain-intrinsic-block-size: auto 912px; }
+  html[lang='en'] .final { contain-intrinsic-block-size: auto 943px; }
+}

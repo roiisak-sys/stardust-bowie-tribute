@@ -114,11 +114,6 @@ function formatDate(iso: string, locale: 'he' | 'en') {
 
 <style>
   .past {
-    /* Off-screen sections are not rendered, so their lazy images stay unloaded
-       until the section nears the viewport (keeps the initial load light).
-       The size is a first-paint estimate; `auto` remembers the real one. */
-    content-visibility: auto;
-    contain-intrinsic-block-size: auto 549px;
     --swipe-item: 72%;
     --swipe-gap: var(--space-xs);
     --swipe-gutter: var(--space-md);
@@ -275,7 +270,6 @@ function formatDate(iso: string, locale: 'he' | 'en') {
   /* Exactly five per view: a fifth of the room left after four gaps. */
   @media (min-width: 1000px) {
     .past {
-      contain-intrinsic-block-size: auto 709px;
       --swipe-item: calc((100% - 4 * var(--swipe-gap)) / 5);
     }
   }
