@@ -1,4 +1,19 @@
 {
+  "ui": {
+    "nextShowLabel": "Next show",
+    "enlarge": "Enlarge",
+    "close": "Close",
+    "prev": "Previous",
+    "next": "Next",
+    "readMore": "Read more",
+    "readLess": "Show less",
+    "allShows": "All shows",
+    "hideShows": "Hide the list",
+    "allYears": "All",
+    "swipeHint": "Swipe",
+    "playShowreel": "Watch the video",
+    "bandSheetClose": "Close biography"
+  },
   "meta": {
     "title": "STARDUST | David Bowie Tribute Show from Israel",
     "description": "Stardust, a David Bowie tribute show from Israel. Six musicians, live rock'n'roll with violin, sax and percussion, and the story behind the songs."

@@ -79,6 +79,16 @@ describe('copy.he.json / copy.en.json', () => {
     expect(heKeys).toEqual(enKeys);
   });
 
+  it('both locales define the same ui strings, all non-empty', () => {
+    const heUi = (copyHe as any).ui;
+    const enUi = (copyEn as any).ui;
+    expect(Object.keys(heUi).sort()).toEqual(Object.keys(enUi).sort());
+    for (const v of [...Object.values(heUi), ...Object.values(enUi)]) {
+      expect(typeof v).toBe('string');
+      expect((v as string).length).toBeGreaterThan(0);
+    }
+  });
+
   it('both locales define 8 Bowie eras with name, line, and image', () => {
     expect(copyHe.bowies.eras).toHaveLength(8);
     expect(copyEn.bowies.eras).toHaveLength(8);
