@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import BrandMark from '../../components/BrandMark.astro';
 import LanguageToggle from '../../components/LanguageToggle.astro';
-import FloatingWhatsApp from '../../components/FloatingWhatsApp.astro';
+import ActionBar from '../../components/ActionBar.astro';
 import Hero from '../../components/Hero.astro';
 import BowieCollage from '../../components/BowieCollage.astro';
 import BowieStory from '../../components/BowieStory.astro';
@@ -18,23 +18,28 @@ import Lightbox from '../../components/Lightbox.astro';
 import copy from '../../content/copy.en.json';
 import bandMembers from '../../content/band-members.json';
 import showsData from '../../content/shows.json';
+import { nextShowPill } from '../../lib/shows-ui';
 
 const shows = showsData as Show[];
+const today = new Date().toISOString().slice(0, 10);
+const pill = nextShowPill(shows, 'en', copy.ui.nextShowLabel, today);
+const whatsappHref = `https://wa.me/${copy.contact.whatsappNumber}?text=${encodeURIComponent(copy.contact.whatsappMessage)}`;
 ---
 
 <BaseLayout locale="en" title={copy.meta.title} description={copy.meta.description}>
   <BrandMark />
   <LanguageToggle locale="en" label={copy.languageToggle.label} ariaLabel={copy.languageToggle.ariaLabel} />
-  <FloatingWhatsApp
-    whatsappNumber={copy.contact.whatsappNumber}
-    whatsappMessage={copy.contact.whatsappMessage}
-    ariaLabel={copy.contact.whatsappCta}
+  <ActionBar
+    whatsappHref={whatsappHref}
+    whatsappLabel={copy.contact.whatsappCta}
+    playLabel={copy.ui.playShowreel}
   />
   <main>
     <Hero
       subtitle={copy.hero.subtitle}
       tribute={copy.hero.tribute}
       descriptor={copy.hero.descriptor}
+      pill={pill}
     />
     <BandGallery
       locale="en"

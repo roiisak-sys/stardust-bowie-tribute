@@ -4,12 +4,15 @@
 // The video is black outside the logo, and it is blended onto the page with
 // `mix-blend-mode: screen`, where black becomes transparent and the glow adds
 // light to the concert footage behind it.
+import Ticker from './Ticker.astro';
+
 interface Props {
   subtitle: string;
   tribute: string;
   descriptor: string;
+  pill?: { label: string; text: string; href: string } | null;
 }
-const { subtitle, tribute, descriptor } = Astro.props;
+const { subtitle, tribute, descriptor, pill = null } = Astro.props;
 ---
 
 <section id="hero" class="hero has-grain">
@@ -50,6 +53,8 @@ const { subtitle, tribute, descriptor } = Astro.props;
   </div>
   <p class="hero__tribute" data-hero-tribute>{tribute}</p>
   <p class="hero__descriptor" data-hero-descriptor>{descriptor}</p>
+  {pill && <a class="hero__pill" href={pill.href}>● {pill.label} · {pill.text}</a>}
+  <Ticker text="STARDUST ✦ DAVID BOWIE TRIBUTE ✦ LIVE ✦" />
 </section>
 
 <noscript>
@@ -180,6 +185,48 @@ const { subtitle, tribute, descriptor } = Astro.props;
     color: var(--color-off-white);
     opacity: 0.85;
     margin: var(--space-sm) 0 0;
+  }
+
+  /* The next-show pill: green outline, links to the tickets (or the shows
+     section). It is part of the first screen, so it has no reveal hook; it
+     simply fades in with CSS after the descriptor. */
+  .hero__pill {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    margin-block-start: var(--space-sm);
+    padding: 0.4rem 0.95rem;
+    border: 1px solid var(--color-accent-green);
+    border-radius: 999px;
+    color: var(--color-accent-green);
+    background: rgba(10, 10, 10, 0.55);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    max-inline-size: 90%;
+  }
+
+  .hero__pill:focus-visible {
+    outline: 2px solid var(--color-off-white);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero__pill {
+      animation: hero-pill-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 1.7s both;
+    }
+  }
+
+  @keyframes hero-pill-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   /* Entrance animations run in CSS, not JavaScript: they start on the very

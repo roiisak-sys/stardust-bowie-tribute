@@ -1,0 +1,72 @@
+---
+// A decorative running line in the brand orange. The text repeats enough times
+// to fill any phone, and the track is two identical halves so that moving it by
+// exactly -50% loops with no jump. Brand text, so it stays English in both
+// languages and is hidden from assistive technology.
+interface Props {
+  text: string;
+}
+const { text } = Astro.props;
+const repeats = 6;
+const half = Array.from({ length: repeats }, () => text);
+---
+
+<div class="ticker" aria-hidden="true">
+  <div class="ticker__track">
+    {[0, 1].map(() => (
+      <span class="ticker__half">
+        {half.map((t) => <span class="ticker__item">{t}</span>)}
+      </span>
+    ))}
+  </div>
+</div>
+
+<style>
+  .ticker {
+    position: relative;
+    z-index: 1;
+    inline-size: 100%;
+    margin-block-start: var(--space-md);
+    overflow: hidden;
+    direction: ltr;
+    background: var(--color-accent-orange);
+    color: var(--color-black);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    white-space: nowrap;
+    padding-block: 0.4rem;
+  }
+
+  .ticker__track {
+    display: flex;
+    inline-size: max-content;
+  }
+
+  .ticker__half {
+    display: flex;
+    flex: none;
+  }
+
+  .ticker__item {
+    padding-inline-end: 1.2em;
+  }
+
+  /* Static band by default; it only moves for visitors who have not asked for
+     reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ticker__track {
+      animation: ticker-loop 28s linear infinite;
+    }
+  }
+
+  @keyframes ticker-loop {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+</style>

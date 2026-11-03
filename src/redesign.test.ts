@@ -121,3 +121,72 @@ describe('redesign guard — built /he/', () => {
     expect(html.match(/id="lightbox"/g) ?? []).toHaveLength(1);
   });
 });
+
+describe('Task 3 — opening pill, ticker and action bar', () => {
+  const read = (rel: string) => {
+    const file = join(DIST, rel);
+    if (!existsSync(file)) throw new Error(`dist/${rel} not found. Run \`npm run build\` first.`);
+    return readFileSync(file, 'utf-8');
+  };
+  const homes = ['he/index.html', 'index.html', 'en/index.html'];
+  const contentPages = ['he/show/index.html', 'show/index.html'];
+
+  for (const rel of homes) {
+    it(`${rel} has the action bar (WhatsApp + #watch) and no floating button`, () => {
+      const html = read(rel);
+      expect(html).toContain('class="action-bar"');
+      const bar = html.slice(html.indexOf('class="action-bar"'));
+      expect(bar).toContain('https://wa.me/');
+      expect(bar).toContain('href="#watch"');
+      expect(html).not.toContain('id="floating-whatsapp"');
+    });
+
+    it(`${rel} has an aria-hidden ticker`, () => {
+      const html = read(rel);
+      expect(html).toMatch(/<div[^>]*class="[^"]*\bticker\b[^"]*"[^>]*aria-hidden="true"|<div[^>]*aria-hidden="true"[^>]*class="[^"]*\bticker\b/);
+      expect(html).toContain('STARDUST ✦ DAVID BOWIE TRIBUTE ✦ LIVE ✦');
+    });
+  }
+
+  it('the play button has a real aria-label', () => {
+    expect(read('he/index.html')).toMatch(/class="action-bar__play"[^>]*aria-label="[^"]+"|aria-label="[^"]+"[^>]*class="action-bar__play"/);
+  });
+
+  for (const rel of contentPages) {
+    it(`${rel} keeps the floating WhatsApp and has no action bar`, () => {
+      const html = read(rel);
+      expect(html).toContain('id="floating-whatsapp"');
+      expect(html).not.toContain('class="action-bar"');
+    });
+  }
+
+  const shows = JSON.parse(readFileSync(join(ROOT, 'src/content/shows.json'), 'utf-8')) as {
+    status: string;
+    dateISO: string;
+    cityHe: string;
+    cityEn: string;
+  }[];
+  const today = new Date().toISOString().slice(0, 10);
+  const next = shows
+    .filter((s) => s.status === 'upcoming' && s.dateISO >= today)
+    .sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0];
+
+  it.skipIf(!next)('/he/ shows the next-show pill with date and city', () => {
+    const html = read('he/index.html');
+    const [, m, d] = next!.dateISO.split('-');
+    expect(html).toContain('class="hero__pill"');
+    const pill = html.slice(html.indexOf('class="hero__pill"'), html.indexOf('</a>', html.indexOf('class="hero__pill"')));
+    expect(pill).toContain(`${Number(d)}.${Number(m)}`);
+    expect(pill).toContain(next!.cityHe);
+  });
+
+  it.skipIf(!next)('/en/ shows the next-show pill with date and city', () => {
+    const html = read('en/index.html');
+    const pill = html.slice(html.indexOf('class="hero__pill"'), html.indexOf('</a>', html.indexOf('class="hero__pill"')));
+    expect(pill).toContain(next!.cityEn);
+  });
+
+  it.skipIf(!!next)('no pill element when no upcoming show', () => {
+    expect(read('he/index.html')).not.toContain('class="hero__pill"');
+  });
+});
