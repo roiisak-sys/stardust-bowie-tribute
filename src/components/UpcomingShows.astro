@@ -133,8 +133,19 @@ function parts(iso: string, locale: 'he' | 'en') {
 
 <style>
   .upcoming {
+    /* Off-screen sections are not rendered, so their lazy images stay unloaded
+       until the section nears the viewport (keeps the initial load light).
+       The size is a first-paint estimate; `auto` remembers the real one. */
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto 728px;
     background: var(--color-black);
     padding: var(--space-xl) var(--space-md);
+  }
+
+  @media (min-width: 1000px) {
+    .upcoming {
+      contain-intrinsic-block-size: auto 888px;
+    }
   }
 
   .upcoming__heading {

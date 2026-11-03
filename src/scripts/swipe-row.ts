@@ -95,4 +95,22 @@ function init(row: HTMLElement) {
   items.forEach((item) => io.observe(item));
 }
 
-document.querySelectorAll<HTMLElement>('[data-swipe]').forEach(init);
+// Set a row up only when it nears the viewport. Measuring every row on load
+// forced layout of the off-screen (content-visibility: auto) sections inside the
+// first long task; the controls of a row nobody can see yet are not needed.
+const rows = document.querySelectorAll<HTMLElement>('[data-swipe]');
+if ('IntersectionObserver' in window) {
+  const waiting = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        waiting.unobserve(entry.target);
+        init(entry.target as HTMLElement);
+      }
+    },
+    { rootMargin: '300px 0px' },
+  );
+  rows.forEach((row) => waiting.observe(row));
+} else {
+  rows.forEach(init);
+}

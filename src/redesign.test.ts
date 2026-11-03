@@ -252,14 +252,13 @@ describe('Task 4 — gallery swipe row, viewer and read more', () => {
     });
   }
 
-  it('first two gallery images are not lazy, the other ten are', () => {
+  it('all twelve gallery images are lazy (the row sits below the hero, so none is needed for first paint)', () => {
     const imgs = galleryOf(read('he/index.html')).match(/<img[^>]*>/g) ?? [];
     expect(imgs).toHaveLength(12);
     imgs.forEach((img, i) => {
       expect(img).toMatch(/width="\d+"/);
       expect(img).toMatch(/height="\d+"/);
-      if (i < 2) expect(img).not.toContain('loading="lazy"');
-      else expect(img).toContain('loading="lazy"');
+      expect(img).toContain('loading="lazy"');
     });
   });
 
@@ -683,7 +682,7 @@ describe('Task 8 — past shows: poster row and short list panel', () => {
       });
     });
 
-    it(`${rel} has 11 poster triggers in a swipe row; only the first two load eagerly`, () => {
+    it(`${rel} has 11 poster triggers in a swipe row; every poster is lazy`, () => {
       const section = pastOf(read(rel));
       const triggers = section.match(/<button[^>]*data-lightbox="posters"[^>]*>/g) ?? [];
       expect(triggers).toHaveLength(11);
@@ -702,8 +701,7 @@ describe('Task 8 — past shows: poster row and short list panel', () => {
         expect(img).toMatch(/\salt=""/);
         expect(img).toMatch(/width="\d+"/);
         expect(img).toMatch(/height="\d+"/);
-        if (i < 2) expect(img).not.toContain('loading="lazy"');
-        else expect(img).toContain('loading="lazy"');
+        expect(img).toContain('loading="lazy"');
       });
     });
 
@@ -1336,5 +1334,61 @@ describe('Task 10b — click-to-load video facade', () => {
     const video = graph.find((n) => n['@type'] === 'VideoObject');
     expect(video.embedUrl).toBe(`https://www.youtube.com/embed/${ID}`);
     expect(video.thumbnailUrl).toContain(ID);
+  });
+
+  describe('off-screen sections and rows stay quiet during the initial load', () => {
+    const noComments = (t: string) => t.replace(/\/\*[\s\S]*?\*\//g, '');
+    const sections: [string, string][] = [
+      ['src/components/BandMembers.astro', 'band'],
+      ['src/components/BowieCollage.astro', 'collage'],
+      ['src/components/UpcomingShows.astro', 'upcoming'],
+      ['src/components/PastShows.astro', 'past'],
+      ['src/components/WatchVideo.astro', 'watch'],
+      ['src/components/ExploreLinks.astro', 'explore'],
+      ['src/components/FinalScene.astro', 'final'],
+    ];
+
+    for (const [path, cls] of sections) {
+      it(`${path} uses content-visibility: auto with a logical intrinsic size`, () => {
+        const css = noComments(cssOf(path));
+        const rule = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find((r) => r[1].trim() === `.${cls}`);
+        expect(rule, `.${cls} rule`).toBeDefined();
+        expect(rule![2]).toMatch(/content-visibility\s*:\s*auto/);
+        expect(rule![2]).toMatch(/contain-intrinsic-block-size\s*:\s*auto\s+\d+px/);
+        expect(css).not.toMatch(/contain-intrinsic-(?:width|height)|contain-intrinsic-size/);
+      });
+    }
+
+    it('the hero, gallery and story are not content-visibility sections (first paint, GSAP trigger)', () => {
+      for (const p of ['src/components/Hero.astro', 'src/components/BandGallery.astro', 'src/components/BowieStory.astro']) {
+        expect(cssOf(p), p).not.toContain('content-visibility');
+      }
+    });
+
+    it('the lightbox and the band sheet live outside the contained sections (dialog / body level)', () => {
+      expect(read('he/index.html')).toMatch(/<\/main>\s*<dialog[^>]*id="lightbox"/);
+      expect(src('src/components/BandMembers.astro')).toMatch(/<dialog id="band-sheet"/);
+    });
+
+    it('swipe rows are set up when they near the viewport, with an immediate fallback', () => {
+      const s = src('src/scripts/swipe-row.ts');
+      expect(s).toMatch(/new IntersectionObserver\([\s\S]*rootMargin/);
+      expect(s).toContain('waiting.unobserve');
+      expect(s).toMatch(/else \{\s*rows\.forEach\(init\)/);
+    });
+
+    for (const rel of pages) {
+      it(`${rel} keeps a real src on every image, none hidden behind data-src, so no-JS shows all of them`, () => {
+        const html = read(rel);
+        const imgs = html.match(/<img[^>]*>/g) ?? [];
+        expect(imgs.length).toBeGreaterThan(30);
+        for (const img of imgs) {
+          expect(img).toMatch(/\ssrc="\/assets\/[^"]+"/);
+          expect(img).not.toContain('data-src');
+          expect(img).toMatch(/width="\d+"/);
+          expect(img).toMatch(/height="\d+"/);
+        }
+      });
+    }
   });
 });

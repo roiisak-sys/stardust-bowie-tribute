@@ -68,9 +68,17 @@ const watchUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
 
 <style>
   .watch {
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto 416px;
     background: var(--color-black);
     padding-block: var(--space-xl);
     padding-inline: var(--space-md);
+  }
+
+  @media (min-width: 1000px) {
+    .watch {
+      contain-intrinsic-block-size: auto 778px;
+    }
   }
 
   .watch__heading {

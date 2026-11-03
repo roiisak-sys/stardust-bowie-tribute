@@ -70,6 +70,11 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
 
 <style>
   .band {
+    /* Off-screen sections are not rendered, so their lazy images stay unloaded
+       until the section nears the viewport (keeps the initial load light).
+       The size is a first-paint estimate; `auto` remembers the real one. */
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto 735px;
     --swipe-item: 72%;
     --swipe-gap: var(--space-sm);
     --swipe-gutter: var(--space-md);
@@ -197,6 +202,7 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
   /* Exactly four per view: a quarter of the room left after three gaps. */
   @media (min-width: 1000px) {
     .band {
+      contain-intrinsic-block-size: auto 895px;
       --swipe-item: calc((100% - 3 * var(--swipe-gap)) / 4);
     }
   }

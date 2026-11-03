@@ -61,6 +61,7 @@ const dominantAlt =
               alt={dominantAlt}
               width={p.width}
               height={p.height}
+              loading="lazy"
               decoding="async"
               class="gallery__image"
             />
@@ -70,7 +71,7 @@ const dominantAlt =
               alt=""
               width={p.width}
               height={p.height}
-              loading={i < 2 ? undefined : 'lazy'}
+              loading="lazy"
               decoding="async"
               class="gallery__image"
             />
