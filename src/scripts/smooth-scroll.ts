@@ -5,13 +5,23 @@ import { prefersReducedMotion } from './reduced-motion';
 
 gsap.registerPlugin(ScrollTrigger);
 
-if (!prefersReducedMotion()) {
-  const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+let lenis: Lenis | null = null;
 
-  lenis.on('scroll', ScrollTrigger.update);
+if (!prefersReducedMotion()) {
+  const instance = new Lenis({ duration: 1.1, smoothWheel: true });
+  lenis = instance;
+
+  instance.on('scroll', ScrollTrigger.update);
 
   gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
+    instance.raf(time * 1000);
   });
   gsap.ticker.lagSmoothing(0);
+}
+
+/** Pause or resume smooth scrolling (used while a modal viewer is open). No-op under reduced motion. */
+export function setSmoothScrollPaused(paused: boolean): void {
+  if (!lenis) return;
+  if (paused) lenis.stop();
+  else lenis.start();
 }

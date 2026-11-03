@@ -1,0 +1,222 @@
+---
+// The one shared image viewer. Render it once per page, after </main>.
+// Triggers are anywhere on the page:
+//   <button type="button" class="zoomable" data-lightbox="SET" data-full="URL"
+//           data-caption="TEXT" aria-label="..."><img ...></button>
+// All triggers sharing a SET open together, in DOM order.
+interface Props {
+  close: string;
+  prev: string;
+  next: string;
+}
+const { close, prev, next } = Astro.props;
+---
+
+<dialog id="lightbox" class="lightbox" aria-labelledby="lightbox-caption" data-lenis-prevent>
+  <div class="lightbox__track" data-lenis-prevent></div>
+  <button type="button" class="lightbox__btn lightbox__close" aria-label={close} autofocus>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+  </button>
+  <button type="button" class="lightbox__btn lightbox__prev" aria-label={prev}>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7"></path></svg>
+  </button>
+  <button type="button" class="lightbox__btn lightbox__next" aria-label={next}>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7"></path></svg>
+  </button>
+  <div class="lightbox__meta">
+    <p class="lightbox__caption" id="lightbox-caption" aria-live="polite"></p>
+    <p class="lightbox__count" aria-hidden="true"></p>
+  </div>
+</dialog>
+
+<script>
+  import '../scripts/lightbox';
+</script>
+
+<style>
+  .lightbox {
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    inline-size: 100vw;
+    block-size: 100vh;
+    block-size: 100dvh;
+    max-inline-size: none;
+    max-block-size: none;
+    overflow: hidden;
+    background: rgba(5, 5, 5, 0.96);
+    color: var(--color-off-white, #f2ede4);
+  }
+
+  .lightbox::backdrop {
+    background: rgba(5, 5, 5, 0.96);
+  }
+
+  .lightbox__track {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .lightbox__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .lightbox__track > :global(.lightbox__slide) {
+    flex: 0 0 100%;
+    min-inline-size: 0;
+    display: grid;
+    place-items: center;
+    padding-block: 4.5rem 5.5rem;
+    padding-inline: var(--space-sm, 1rem);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .lightbox__track :global(.lightbox__slide img) {
+    max-inline-size: 100%;
+    max-block-size: 100%;
+    inline-size: auto;
+    block-size: auto;
+    object-fit: contain;
+  }
+
+  .lightbox__btn {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    padding: 0;
+    border: 1px solid rgba(242, 237, 228, 0.35);
+    border-radius: 50%;
+    background: rgba(10, 10, 10, 0.6);
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .lightbox__btn svg {
+    inline-size: 1.4rem;
+    block-size: 1.4rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .lightbox__btn:focus-visible {
+    outline: 2px solid var(--color-accent-orange, #f96949);
+    outline-offset: 2px;
+  }
+
+  .lightbox__btn[aria-disabled='true'] {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .lightbox__btn[hidden] {
+    display: none;
+  }
+
+  .lightbox__close {
+    inset-block-start: max(var(--space-sm, 1rem), env(safe-area-inset-top));
+    inset-inline-end: var(--space-sm, 1rem);
+  }
+
+  .lightbox__prev,
+  .lightbox__next {
+    inset-block-start: 50%;
+    translate: 0 -50%;
+  }
+
+  .lightbox__prev {
+    inset-inline-start: var(--space-xs, 0.5rem);
+  }
+
+  .lightbox__next {
+    inset-inline-end: var(--space-xs, 0.5rem);
+  }
+
+  /* Chevrons are drawn for LTR; mirror them in RTL so prev/next follow the reading direction. */
+  :global([dir='rtl']) .lightbox__prev svg,
+  :global([dir='rtl']) .lightbox__next svg {
+    scale: -1 1;
+  }
+
+  .lightbox__meta {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    padding-block: var(--space-sm, 1rem) max(var(--space-sm, 1rem), env(safe-area-inset-bottom));
+    padding-inline: 4rem;
+    text-align: center;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(5, 5, 5, 0.85), transparent);
+  }
+
+  .lightbox__caption {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .lightbox__count {
+    margin: 0.25rem 0 0;
+    font-family: var(--font-mono, monospace);
+    font-size: var(--size-label, 0.75rem);
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+  }
+
+  /* Page scroll lock while the viewer is open. */
+  :global(html.lb-open),
+  :global(html.lb-open body) {
+    overflow: hidden;
+  }
+
+  /* Trigger buttons wrap an <img>: strip the button chrome. */
+  :global(.zoomable) {
+    display: block;
+    inline-size: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: zoom-in;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :global(.zoomable:focus-visible) {
+    outline: 2px solid var(--color-accent-orange, #f96949);
+    outline-offset: 3px;
+  }
+
+  :global(.zoomable img) {
+    display: block;
+    inline-size: 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox[open] {
+      animation: lightbox-in 0.25s ease-out;
+    }
+
+    .lightbox__btn {
+      transition: opacity 0.2s ease;
+    }
+  }
+
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+    }
+  }
+</style>

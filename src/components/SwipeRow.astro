@@ -1,0 +1,80 @@
+---
+// A horizontal scroll-snap row with page dots. The parent marks each child it
+// puts in the slot with `data-swipe-item`. Sizing hooks (set on .swipe or a
+// parent): --swipe-item (item width, default 82%), --swipe-gap, --swipe-gutter.
+interface Props {
+  label: string;
+}
+const { label } = Astro.props;
+---
+
+<div class="swipe" data-swipe role="group" aria-label={label}>
+  <div class="swipe__track"><slot /></div>
+  <div class="swipe__dots" aria-hidden="true"></div>
+</div>
+
+<script>
+  import '../scripts/swipe-row';
+</script>
+
+<style>
+  .swipe {
+    --swipe-gutter: var(--space-sm, 1rem);
+    inline-size: 100%;
+  }
+
+  .swipe__track {
+    display: flex;
+    gap: var(--swipe-gap, var(--space-sm, 1rem));
+    overflow-x: auto;
+    padding-inline: var(--swipe-gutter);
+    scroll-padding-inline: var(--swipe-gutter);
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .swipe__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .swipe__track > :global([data-swipe-item]) {
+    flex: 0 0 var(--swipe-item, 82%);
+    min-inline-size: 0;
+    scroll-snap-align: start;
+  }
+
+  .swipe__dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-block-start: var(--space-sm, 1rem);
+  }
+
+  .swipe__dots:empty {
+    display: none;
+  }
+
+  .swipe__dots > :global(span) {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    border-radius: 50%;
+    background: var(--color-off-white, #f2ede4);
+    opacity: 0.3;
+    transition:
+      opacity 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .swipe__dots > :global(span.on) {
+    opacity: 1;
+    background: var(--color-accent-orange, #f96949);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .swipe__dots > :global(span) {
+      transition: none;
+    }
+  }
+</style>

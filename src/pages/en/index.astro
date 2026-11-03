@@ -14,6 +14,7 @@ import type { Show } from '../../components/UpcomingShows.astro';
 import PastShows from '../../components/PastShows.astro';
 import FinalScene from '../../components/FinalScene.astro';
 import ExploreLinks from '../../components/ExploreLinks.astro';
+import Lightbox from '../../components/Lightbox.astro';
 import copy from '../../content/copy.en.json';
 import bandMembers from '../../content/band-members.json';
 import showsData from '../../content/shows.json';
@@ -94,4 +95,5 @@ const shows = showsData as Show[];
       youtubeUrl={copy.contact.youtubeUrl}
     />
   </main>
+  <Lightbox close={copy.ui.close} prev={copy.ui.prev} next={copy.ui.next} />
 </BaseLayout>

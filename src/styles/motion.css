@@ -1,0 +1,33 @@
+/*
+ * Shared reveal motion. The `js` class is added to <html> by an inline script
+ * in BaseLayout, so without JavaScript (or with reduced motion) everything is
+ * simply visible. `scripts/reveal.ts` adds `.in` when an element enters view.
+ *
+ *   data-reveal    fade + rise 18px
+ *   data-colorize  grayscale -> colour (photos)
+ *
+ * Optional stagger: style="--reveal-delay: 120ms"
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    translate: 0 18px;
+    transition:
+      opacity 0.7s var(--ease-editorial, ease-out) var(--reveal-delay, 0s),
+      translate 0.7s var(--ease-editorial, ease-out) var(--reveal-delay, 0s);
+  }
+
+  .js [data-reveal].in {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .js [data-colorize] {
+    filter: grayscale(1);
+    transition: filter 1.2s var(--ease-editorial, ease-out) var(--reveal-delay, 0s);
+  }
+
+  .js [data-colorize].in {
+    filter: grayscale(0);
+  }
+}
