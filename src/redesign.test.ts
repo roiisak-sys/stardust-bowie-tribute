@@ -464,3 +464,33 @@ describe('Task 6 — Bowie eras swipe strip', () => {
     expect(css).toMatch(/aspect-ratio\s*:\s*3\s*\/\s*4/);
   });
 });
+
+describe('swipe item focus rings stay inside the clip box', () => {
+  const offsetOf = (path: string, selector: string) => {
+    const css = cssOf(path).replace(/\/\*[\s\S]*?\*\//g, '');
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((r) =>
+      r[1].split(',').some((sel) => sel.trim() === selector),
+    );
+    expect(rules.length, `${path} has no rule for ${selector}`).toBeGreaterThan(0);
+    return rules.map((r) => r[2].match(/outline-offset\s*:\s*(-?[\d.]+)(px|rem)?/)?.[1]);
+  };
+
+  it('.zoomable:focus-visible uses a negative outline-offset', () => {
+    for (const v of offsetOf('src/components/Lightbox.astro', ':global(.zoomable:focus-visible)')) {
+      expect(Number(v)).toBeLessThan(0);
+    }
+  });
+
+  it('.band__open:focus-visible uses a negative outline-offset', () => {
+    for (const v of offsetOf('src/components/BandMembers.astro', '.band__open:focus-visible')) {
+      expect(Number(v)).toBeLessThan(0);
+    }
+  });
+
+  it('an inset overlay ring is drawn above the photo for both triggers', () => {
+    const lb = cssOf('src/components/Lightbox.astro');
+    const bm = cssOf('src/components/BandMembers.astro');
+    expect(lb).toMatch(/:global\(\.zoomable:focus-visible::after\)\s*\{[^{}]*inset\s*:\s*0[^{}]*box-shadow\s*:\s*inset/);
+    expect(bm).toMatch(/\.band__open:focus-visible::after\s*\{[^{}]*inset\s*:\s*0[^{}]*box-shadow\s*:\s*inset/);
+  });
+});

@@ -108,10 +108,25 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
     -webkit-tap-highlight-color: transparent;
   }
 
-  .band__open:focus-visible,
   .band-sheet__close:focus-visible {
     outline: 2px solid var(--color-accent-orange);
     outline-offset: 3px;
+  }
+
+  /* Inside the card: the swipe track clips outward outlines. */
+  .band__open:focus-visible {
+    outline: 2px solid var(--color-accent-orange);
+    outline-offset: -3px;
+  }
+
+  /* The photo paints over the card's own outline: draw the ring above it. */
+  .band__open:focus-visible::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 3px var(--color-accent-orange);
+    pointer-events: none;
   }
 
   .band__photo {

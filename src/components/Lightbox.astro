@@ -194,9 +194,26 @@ const { close, prev, next } = Astro.props;
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* Drawn inside the trigger: triggers sit in swipe rows and overflow-hidden
+     cards, which would clip an outward outline. */
   :global(.zoomable:focus-visible) {
     outline: 2px solid var(--color-accent-orange, #f96949);
-    outline-offset: 3px;
+    outline-offset: -3px;
+  }
+
+  /* An outline is painted under positioned or filtered children (the photo),
+     so the visible ring is an inset overlay drawn above them. */
+  :global(.zoomable) {
+    position: relative;
+  }
+
+  :global(.zoomable:focus-visible::after) {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 3px var(--color-accent-orange, #f96949);
+    pointer-events: none;
   }
 
   :global(.zoomable img) {
