@@ -3,16 +3,17 @@
 // puts in the slot with `data-swipe-item`. Sizing hooks (set on .swipe or any
 // parent): --swipe-item (item width, default 82%), --swipe-gap, --swipe-gutter.
 // For mouse users (hover + fine pointer, JS on) previous / next buttons scroll
-// the row, since the scrollbar is hidden.
+// the row, since the scrollbar is hidden. `auto` makes the row step along by itself.
 interface Props {
   label: string;
   prevLabel: string;
   nextLabel: string;
+  auto?: boolean;
 }
-const { label, prevLabel, nextLabel } = Astro.props;
+const { label, prevLabel, nextLabel, auto = false } = Astro.props;
 ---
 
-<div class="swipe" data-swipe role="group" aria-label={label}>
+<div class="swipe" data-swipe data-swipe-auto={auto ? '' : undefined} role="group" aria-label={label}>
   <div class="swipe__stage">
     <div class="swipe__track"><slot /></div>
     <button type="button" class="swipe__arrow swipe__arrow--prev" data-swipe-prev aria-label={prevLabel}>

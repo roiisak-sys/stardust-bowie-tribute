@@ -35,7 +35,7 @@ const sizes = await Promise.all(eras.map((e) => imageSize(e.image)));
   <h2 class="collage__heading">{heading}</h2>
   <p class="collage__fragments">{fragments.join(' · ')}</p>
 
-  <SwipeRow label={heading} prevLabel={prevLabel} nextLabel={nextLabel}>
+  <SwipeRow auto label={heading} prevLabel={prevLabel} nextLabel={nextLabel}>
     {eras.map((era, i) => (
       <div class={`collage__card collage__card--${i}`} data-swipe-item data-reveal>
         <button

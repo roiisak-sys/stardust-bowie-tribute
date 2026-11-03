@@ -4,14 +4,16 @@
 //
 // The previous / next buttons (shown by CSS only for mouse users) scroll the
 // track by whole items and disable themselves at either end.
-import { createPendingScroll, edgeState, pageStep, scrollDelta } from '../lib/swipe-nav';
+import { autoAction, createPendingScroll, edgeState, pageStep, scrollDelta } from '../lib/swipe-nav';
 import { initWhenNear } from '../lib/lazy-init';
 import { prefersReducedMotion } from './reduced-motion';
 
-function initArrows(row: HTMLElement, track: HTMLElement) {
+type Go = (which: 'prev' | 'next', unit?: 'page' | 'item') => void;
+
+function initArrows(row: HTMLElement, track: HTMLElement): Go | null {
   const prev = row.querySelector<HTMLButtonElement>('[data-swipe-prev]');
   const next = row.querySelector<HTMLButtonElement>('[data-swipe-next]');
-  if (!prev || !next) return;
+  if (!prev || !next) return null;
 
   // Where the smooth scroll under way is heading, so rapid presses land on whole items.
   const pending = createPendingScroll();
@@ -26,14 +28,14 @@ function initArrows(row: HTMLElement, track: HTMLElement) {
     if (hadFocus === next && !canNext && canPrev) prev.focus({ preventScroll: true });
   };
 
-  const go = (which: 'prev' | 'next') => {
+  const go: Go = (which, unit = 'page') => {
     const items = track.querySelectorAll<HTMLElement>('[data-swipe-item]');
     if (!items.length) return;
     const first = items[0].getBoundingClientRect();
     const pitch = items.length > 1 ? Math.abs(items[1].getBoundingClientRect().left - first.left) : first.width;
     const cs = getComputedStyle(track);
     const content = track.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    const step = pageStep({ pitch, content, gap: Math.max(0, pitch - first.width) });
+    const step = unit === 'item' ? pitch : pageStep({ pitch, content, gap: Math.max(0, pitch - first.width) });
     const target = pending.press(
       track.scrollLeft,
       scrollDelta(which, cs.direction, step),
@@ -60,6 +62,67 @@ function initArrows(row: HTMLElement, track: HTMLElement) {
   track.addEventListener('wheel', pending.clear, { passive: true });
   if ('ResizeObserver' in window) new ResizeObserver(sync).observe(track);
   sync();
+  return go;
+}
+
+const AUTO_EVERY_MS = 3500;
+const AUTO_RESUME_MS = 8000;
+
+// Rows marked data-swipe-auto move on their own, one step at a time, and start
+// over from the first item at the end. Any sign of the visitor (hover, focus,
+// touch, wheel, keys, the buttons) holds it still, and so do a hidden tab, an
+// open viewer and a row scrolled out of sight. Visitors who asked for reduced
+// motion get no auto-advance.
+function initAuto(row: HTMLElement, track: HTMLElement, go: Go) {
+  if (prefersReducedMotion()) return;
+  let visible = false;
+  let hovering = false;
+  let focused = false;
+  let resumeAt = 0;
+  const hold = () => {
+    resumeAt = Date.now() + AUTO_RESUME_MS;
+  };
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      visible = entries[entries.length - 1].isIntersecting;
+    }, { threshold: 0.4 }).observe(row);
+  } else {
+    visible = true;
+  }
+
+  row.addEventListener('pointerenter', (e) => {
+    if (e.pointerType === 'mouse') hovering = true;
+  });
+  row.addEventListener('pointerleave', () => {
+    hovering = false;
+  });
+  row.addEventListener('focusin', () => {
+    focused = true;
+  });
+  row.addEventListener('focusout', () => {
+    focused = false;
+  });
+  for (const type of ['pointerdown', 'touchstart', 'wheel', 'keydown'] as const) {
+    track.addEventListener(type, hold, { passive: true });
+  }
+  row.querySelectorAll('[data-swipe-prev], [data-swipe-next]').forEach((b) => b.addEventListener('click', hold));
+
+  setInterval(() => {
+    const { canNext } = edgeState(track.scrollLeft, track.scrollWidth, track.clientWidth);
+    const action = autoAction({
+      visible,
+      hovering,
+      focused,
+      docHidden: document.hidden,
+      dialogOpen: !!document.querySelector('dialog[open]'),
+      now: Date.now(),
+      resumeAt,
+      canNext,
+    });
+    if (action === 'next') go('next', 'item');
+    else if (action === 'restart') track.scrollTo({ left: 0, behavior: 'smooth' });
+  }, AUTO_EVERY_MS);
 }
 
 function init(row: HTMLElement) {
@@ -67,7 +130,8 @@ function init(row: HTMLElement) {
   const dotsBox = row.querySelector<HTMLElement>('.swipe__dots');
   if (!track || !dotsBox) return;
 
-  initArrows(row, track);
+  const go = initArrows(row, track);
+  if (go && row.hasAttribute('data-swipe-auto')) initAuto(row, track, go);
 
   const items = Array.from(track.querySelectorAll<HTMLElement>('[data-swipe-item]'));
   dotsBox.replaceChildren();

@@ -100,6 +100,9 @@ for (const p of pages) {
       expect(tag).toMatch(/playsinline/);
       expect(tag).toContain('aria-hidden="true"');
       expect(tag).not.toMatch(/\sloop/);
+      // fallback for phones that block video autoplay: the same animation as a one-shot image
+      expect(tag).toContain('data-anim-image="/assets/logo/stardust-logo-anim.webp"');
+      expect(existsSync(join(DIST, 'assets', 'logo', 'stardust-logo-anim.webp'))).toBe(true);
       for (const f of ['stardust-logo-anim.mp4', 'stardust-logo-anim-poster.webp', 'stardust-logo-anim-final.webp']) {
         expect(existsSync(join(DIST, 'assets', 'logo', f)), f).toBe(true);
       }

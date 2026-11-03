@@ -36,6 +36,7 @@ const { subtitle, tribute, descriptor, pill = null } = Astro.props;
       src="/assets/logo/stardust-logo-anim.mp4"
       poster="/assets/logo/stardust-logo-anim-poster.webp"
       data-final-frame="/assets/logo/stardust-logo-anim-final.webp"
+      data-anim-image="/assets/logo/stardust-logo-anim.webp"
       width="960"
       height="960"
       muted
@@ -143,7 +144,8 @@ const { subtitle, tribute, descriptor, pill = null } = Astro.props;
 
   /* The animated logo. Black in the video turns transparent with a screen
      blend, so only the lettering and the light show. */
-  .hero__logo-anim {
+  .hero__logo-anim,
+  .hero__brand :global(img.hero__logo-anim) {
     position: absolute;
     z-index: 1;
     left: 50%;
@@ -155,6 +157,14 @@ const { subtitle, tribute, descriptor, pill = null } = Astro.props;
     mix-blend-mode: screen;
     pointer-events: none;
     display: block;
+  }
+
+  /* iOS draws a play button over a video whose autoplay it blocked. The logo is
+     decoration, not a player, so the button is hidden. */
+  .hero__logo-anim::-webkit-media-controls,
+  .hero__logo-anim::-webkit-media-controls-start-playback-button {
+    display: none !important;
+    -webkit-appearance: none;
   }
 
   /* Tier 2: the identity-clarifying line. Bold and tracked, in the same
@@ -295,10 +305,28 @@ const { subtitle, tribute, descriptor, pill = null } = Astro.props;
       logoAnim.removeAttribute('autoplay');
       if (logoAnim.dataset.finalFrame) logoAnim.poster = logoAnim.dataset.finalFrame;
     } else {
-      // Autoplay is already on (the file is only about 0.5 MB); this retries
-      // if a browser delayed it, and does nothing if it is blocked: the poster
-      // frame is the logo, so nothing is lost.
-      logoAnim.play().catch(() => {});
+      // Autoplay is already on (the file is only about 0.5 MB). Some phones
+      // refuse it anyway (iOS Low Power Mode, data savers, in-app browsers) and
+      // show a dead play button. When that happens the video is swapped for the
+      // same animation as a one-shot animated image, which browsers never block.
+      let swapped = false;
+      const useImage = () => {
+        if (swapped) return;
+        swapped = true;
+        const img = new Image();
+        img.className = logoAnim.className;
+        img.alt = '';
+        img.width = 960;
+        img.height = 960;
+        img.decoding = 'async';
+        img.setAttribute('aria-hidden', 'true');
+        img.src = logoAnim.dataset.animImage ?? '';
+        logoAnim.replaceWith(img);
+      };
+      logoAnim.play().catch(useImage);
+      setTimeout(() => {
+        if (logoAnim.paused && !logoAnim.ended) useImage();
+      }, 2000);
     }
   }
 

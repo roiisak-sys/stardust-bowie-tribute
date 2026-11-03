@@ -1017,6 +1017,27 @@ describe('Task 9a — reveal motion, desktop widths and mouse reachability', () 
         expect(edgeState(0, 400, 400)).toEqual({ canPrev: false, canNext: false });
       });
 
+      it('auto-advance holds still for the visitor, an open viewer, a hidden tab or a row out of sight', async () => {
+        const { autoAction } = await import('./lib/swipe-nav');
+        const base = { visible: true, hovering: false, focused: false, docHidden: false, dialogOpen: false, now: 10_000, resumeAt: 0, canNext: true };
+        expect(autoAction(base)).toBe('next');
+        expect(autoAction({ ...base, canNext: false })).toBe('restart');
+        for (const hold of [{ visible: false }, { hovering: true }, { focused: true }, { docHidden: true }, { dialogOpen: true }, { resumeAt: 10_001 }]) {
+          expect(autoAction({ ...base, ...hold }), JSON.stringify(hold)).toBeNull();
+        }
+        expect(autoAction({ ...base, resumeAt: 10_000 })).toBe('next');
+      });
+
+      it('the band photos, the band members and the Bowie eras step along by themselves; posters do not', () => {
+        for (const f of ['BandGallery', 'BandMembers', 'BowieCollage']) {
+          expect(src(`src/components/${f}.astro`), f).toMatch(/<SwipeRow auto /);
+        }
+        expect(src('src/components/PastShows.astro')).not.toMatch(/<SwipeRow auto /);
+        const s = src('src/scripts/swipe-row.ts');
+        expect(s).toContain('data-swipe-auto');
+        expect(s).toMatch(/prefersReducedMotion\(\)\) return/);
+      });
+
       it('one page moves by whole items: 4 cards of 250 with a 16 gap', async () => {
         const { pageStep } = await import('./lib/swipe-nav');
         // track content 1048 = 4 * 250 + 3 * 16

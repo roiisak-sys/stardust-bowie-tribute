@@ -106,3 +106,19 @@ export function pageStep({ pitch, content, gap }: { pitch: number; content: numb
   const count = Math.max(1, Math.floor((content + gap + 1) / pitch));
   return count * pitch;
 }
+
+/** What the auto-advance of a row does on a tick, or null when it should hold still. */
+export function autoAction(state: {
+  visible: boolean;
+  hovering: boolean;
+  focused: boolean;
+  docHidden: boolean;
+  dialogOpen: boolean;
+  now: number;
+  resumeAt: number;
+  canNext: boolean;
+}): 'next' | 'restart' | null {
+  const { visible, hovering, focused, docHidden, dialogOpen, now, resumeAt, canNext } = state;
+  if (!visible || hovering || focused || docHidden || dialogOpen || now < resumeAt) return null;
+  return canNext ? 'next' : 'restart';
+}
