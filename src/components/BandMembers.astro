@@ -353,15 +353,21 @@ const rowLabel = locale === 'he' ? 'חברי הלהקה' : 'The band';
     closeBtn.addEventListener('click', () => sheet.close());
 
     // Only the backdrop can be the target: the dialog itself has no padding. A
-    // text-selection drag that starts in the panel and ends on the backdrop also
-    // clicks the dialog, so the press must have begun on the backdrop too.
+    // drag that starts in the panel and ends on the backdrop (or the reverse)
+    // also clicks the dialog, so both the press and the release must be on it.
     let pressedOnBackdrop = false;
+    let releasedOnBackdrop = false;
     sheet.addEventListener('pointerdown', (e) => {
       pressedOnBackdrop = e.target === sheet;
+      releasedOnBackdrop = false;
+    });
+    sheet.addEventListener('pointerup', (e) => {
+      releasedOnBackdrop = e.target === sheet;
     });
     sheet.addEventListener('click', (e) => {
-      if (e.target === sheet && pressedOnBackdrop) sheet.close();
+      if (e.target === sheet && pressedOnBackdrop && releasedOnBackdrop) sheet.close();
       pressedOnBackdrop = false;
+      releasedOnBackdrop = false;
     });
 
     // Fires for Escape, the close button and the backdrop alike.

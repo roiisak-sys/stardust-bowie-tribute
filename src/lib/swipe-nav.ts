@@ -24,6 +24,68 @@ export function scrollTarget(
   return Math.min(hi, Math.max(lo, base + delta));
 }
 
+/** Timer functions the controller uses; tests pass fakes, the page uses the globals. */
+export interface PendingTimers {
+  set: (fn: () => void, ms: number) => unknown;
+  clear: (handle: unknown) => void;
+}
+
+const globalTimers: PendingTimers = {
+  set: (fn, ms) => setTimeout(fn, ms),
+  clear: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
+};
+
+/**
+ * The state behind rapid presses of a swipe row's buttons: where the smooth
+ * scroll under way is heading (`pending`). A press steps from there rather than
+ * from wherever the animation happens to be, so presses always land on a whole
+ * item. The target is forgotten once the row gets there (within 2px), when the
+ * user takes over (`clear`, from pointerdown / wheel / scrollend), or after
+ * `quietMs` without a scroll event. The last one matters because Lenis swallows
+ * native `scrollend` events.
+ */
+export function createPendingScroll(timers: PendingTimers = globalTimers, quietMs = 200) {
+  let pending: number | null = null;
+  let handle: unknown = null;
+
+  const disarm = () => {
+    if (handle !== null) timers.clear(handle);
+    handle = null;
+  };
+  const clear = () => {
+    pending = null;
+    disarm();
+  };
+  const arm = () => {
+    disarm();
+    handle = timers.set(clear, quietMs);
+  };
+
+  return {
+    /** The target of the scroll under way, or null when the row is at rest. */
+    get target() {
+      return pending;
+    },
+    /** A button press: returns where to scroll to and remembers it while it is still ahead. */
+    press(current: number, delta: number, scrollWidth: number, clientWidth: number, direction: string): number {
+      const target = scrollTarget(pending ?? current, delta, scrollWidth, clientWidth, direction);
+      if (Math.abs(target - current) > 2) {
+        pending = target;
+        arm();
+      } else {
+        clear();
+      }
+      return target;
+    },
+    /** A scroll event at position `current`. */
+    scrolled(current: number) {
+      if (pending !== null && Math.abs(current - pending) <= 2) clear();
+      if (pending !== null) arm();
+    },
+    clear,
+  };
+}
+
 /**
  * Which directions the row can still travel. RTL rows report a zero or negative
  * scrollLeft, so only its magnitude counts. Two pixels of slack absorb

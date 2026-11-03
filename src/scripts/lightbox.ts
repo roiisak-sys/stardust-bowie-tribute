@@ -91,9 +91,10 @@ if (dialog) {
     nextBtn.hidden = single;
 
     current = -1;
+    // Lock only once the dialog is really open: a throwing showModal() must not leave a stuck lock.
+    dialog!.showModal();
     document.documentElement.classList.add('lb-open');
     setSmoothScrollPaused(true);
-    dialog!.showModal();
 
     setCurrent(start);
     goTo(start, false);

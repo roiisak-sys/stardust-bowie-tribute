@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -1113,17 +1113,126 @@ describe('Task 9b — carried review fixes', () => {
       const down = script.match(/addEventListener\('pointerdown',[\s\S]*?\n {4}\}\);/)![0];
       expect(down).toMatch(/pressedOnBackdrop\s*=\s*e\.target === sheet/);
     });
+
+    it('the release must also land on the backdrop (a drag from the backdrop into the panel does not close)', () => {
+      const up = script.match(/addEventListener\('pointerup',[\s\S]*?\n {4}\}\);/)![0];
+      expect(up).toMatch(/releasedOnBackdrop\s*=\s*e\.target === sheet/);
+      const click = script.match(/sheet\.addEventListener\('click',[\s\S]*?\n {4}\}\);/)![0];
+      expect(click).toMatch(/if \(e\.target === sheet && pressedOnBackdrop && releasedOnBackdrop\) sheet\.close\(\)/);
+    });
+  });
+
+  describe('lightbox lock order', () => {
+    it('locks the page only after showModal() has succeeded', () => {
+      const s = src('src/scripts/lightbox.ts');
+      const open = s.indexOf('dialog!.showModal()');
+      expect(open).toBeGreaterThan(-1);
+      expect(s.indexOf("classList.add('lb-open')")).toBeGreaterThan(open);
+      expect(s.indexOf('setSmoothScrollPaused(true)')).toBeGreaterThan(open);
+    });
   });
 
   describe('swipe row buttons', () => {
     const s = src('src/scripts/swipe-row.ts');
+    const LTR = [1000, 400, 'ltr'] as const; // 600 of travel
+    const RTL = [1000, 400, 'rtl'] as const;
+    afterEach(() => vi.useRealTimers());
 
-    it('steps from a stored target so rapid presses never land mid-item', () => {
-      expect(s).toContain('scrollTarget');
-      expect(s).toMatch(/pending/);
-      expect(s).toContain('scrollend');
-      // Lenis swallows native scrollend events, so a quiet-scroll timeout is the fallback.
-      expect(s).toMatch(/setTimeout\(clearPending,\s*\d+\)/);
+    it('uses the pending-scroll controller and clears it on pointerdown, wheel and scrollend', () => {
+      expect(s).toContain('createPendingScroll');
+      expect(s).toMatch(/addEventListener\('pointerdown',\s*pending\.clear\)/);
+      expect(s).toMatch(/addEventListener\('wheel',\s*pending\.clear/);
+      expect(s).toMatch(/addEventListener\('scrollend',\s*pending\.clear\)/);
+    });
+
+    it('rapid presses accumulate from the pending target, not the current position', async () => {
+      vi.useFakeTimers();
+      const { createPendingScroll } = await import('./lib/swipe-nav');
+      const c = createPendingScroll();
+      // the animation has not moved: the row still reports 0
+      expect(c.press(0, 200, ...LTR)).toBe(200);
+      expect(c.press(0, 200, ...LTR)).toBe(400);
+      expect(c.target).toBe(400);
+      expect(c.press(0, -200, ...LTR)).toBe(200);
+    });
+
+    it('clamps at both ends, including RTL negative positions', async () => {
+      vi.useFakeTimers();
+      const { createPendingScroll } = await import('./lib/swipe-nav');
+      const ltr = createPendingScroll();
+      expect(ltr.press(0, 500, ...LTR)).toBe(500);
+      expect(ltr.press(0, 500, ...LTR)).toBe(600);
+      expect(ltr.press(0, -500, ...LTR)).toBe(100);
+      expect(ltr.press(0, -500, ...LTR)).toBe(0);
+      const rtl = createPendingScroll();
+      expect(rtl.press(0, -500, ...RTL)).toBe(-500);
+      expect(rtl.press(0, -500, ...RTL)).toBe(-600);
+      expect(rtl.press(0, 500, ...RTL)).toBe(-100);
+      expect(rtl.press(0, 500, ...RTL)).toBe(0);
+    });
+
+    it('forgets the target once a scroll event is within 2px of it, then starts from the real position', async () => {
+      vi.useFakeTimers();
+      const { createPendingScroll } = await import('./lib/swipe-nav');
+      const c = createPendingScroll();
+      c.press(0, 300, ...LTR);
+      c.scrolled(100);
+      expect(c.target).toBe(300);
+      c.scrolled(297); // 3px away: not there yet
+      expect(c.target).toBe(300);
+      c.scrolled(298); // 2px away: there
+      expect(c.target).toBeNull();
+      expect(c.press(298, 300, ...LTR)).toBe(598);
+      c.scrolled(300);
+      expect(c.target).toBe(598);
+      c.scrolled(596);
+      expect(c.target).toBeNull();
+    });
+
+    it('clear() (pointerdown, wheel, scrollend) drops the target at once and cancels the timer', async () => {
+      vi.useFakeTimers();
+      const { createPendingScroll } = await import('./lib/swipe-nav');
+      const c = createPendingScroll();
+      c.press(0, 300, ...LTR);
+      expect(vi.getTimerCount()).toBe(1);
+      c.clear();
+      expect(c.target).toBeNull();
+      expect(vi.getTimerCount()).toBe(0);
+      expect(c.press(120, 300, ...LTR)).toBe(420);
+    });
+
+    it('forgets the target after 200ms without a scroll event; each scroll event restarts the wait', async () => {
+      vi.useFakeTimers();
+      const { createPendingScroll } = await import('./lib/swipe-nav');
+      const c = createPendingScroll();
+      c.press(0, 300, ...LTR);
+      vi.advanceTimersByTime(199);
+      expect(c.target).toBe(300);
+      c.scrolled(50); // still moving: the quiet period starts over
+      vi.advanceTimersByTime(199);
+      expect(c.target).toBe(300);
+      vi.advanceTimersByTime(1);
+      expect(c.target).toBeNull();
+      expect(c.press(50, 300, ...LTR)).toBe(350);
+    });
+
+    it('a press that goes nowhere (already at the end) leaves no target or timer behind', async () => {
+      vi.useFakeTimers();
+      const { createPendingScroll } = await import('./lib/swipe-nav');
+      const c = createPendingScroll();
+      expect(c.press(600, 300, ...LTR)).toBe(600);
+      expect(c.target).toBeNull();
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it('uses the timer functions it is given', async () => {
+      const { createPendingScroll } = await import('./lib/swipe-nav');
+      const fns: (() => void)[] = [];
+      const c = createPendingScroll({ set: (fn) => fns.push(fn), clear: () => {} }, 200);
+      c.press(0, 300, ...LTR);
+      expect(c.target).toBe(300);
+      fns[0]();
+      expect(c.target).toBeNull();
     });
 
     it('relies on the ResizeObserver alone: no window resize listener', () => {
