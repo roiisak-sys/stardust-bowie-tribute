@@ -221,10 +221,10 @@ describe('Task 4 — gallery swipe row, viewer and read more', () => {
   ];
 
   for (const [rel, copy] of pages) {
-    it(`${rel} has 12 gallery triggers, each labelled and captioned`, () => {
+    it(`${rel} has 18 gallery triggers, each labelled and captioned`, () => {
       const gallery = galleryOf(read(rel));
       const triggers = gallery.match(/<button[^>]*data-lightbox="gallery"[^>]*>/g) ?? [];
-      expect(triggers).toHaveLength(12);
+      expect(triggers).toHaveLength(18);
       for (const t of triggers) {
         expect(t).toContain('class="zoomable"');
         expect(t).toMatch(/data-full="\/assets\/gallery\/[^"]+\.webp"/);
@@ -232,7 +232,7 @@ describe('Task 4 — gallery swipe row, viewer and read more', () => {
         expect(t).toContain(`aria-label="${copy.ui.enlarge}"`);
       }
       expect(gallery).toContain('data-swipe');
-      expect((gallery.match(/<div[^>]*data-swipe-item/g) ?? []).length).toBe(12);
+      expect((gallery.match(/<div[^>]*data-swipe-item/g) ?? []).length).toBe(18);
     });
 
     it(`${rel} keeps the full intro text and a data-readmore button with copy labels`, () => {
@@ -253,9 +253,9 @@ describe('Task 4 — gallery swipe row, viewer and read more', () => {
     });
   }
 
-  it('all twelve gallery images are lazy (the row sits below the hero, so none is needed for first paint)', () => {
+  it('all eighteen gallery images are lazy (the row sits below the hero, so none is needed for first paint)', () => {
     const imgs = galleryOf(read('he/index.html')).match(/<img[^>]*>/g) ?? [];
-    expect(imgs).toHaveLength(12);
+    expect(imgs).toHaveLength(18);
     imgs.forEach((img, i) => {
       expect(img).toMatch(/width="\d+"/);
       expect(img).toMatch(/height="\d+"/);
