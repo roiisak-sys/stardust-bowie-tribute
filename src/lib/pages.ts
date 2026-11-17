@@ -34,7 +34,9 @@ export function formatDate(iso: string, locale: Locale): string {
 const today = () => new Date().toISOString().slice(0, 10);
 
 export const pastShows = shows.filter((s) => s.status === 'past').sort((a, b) => b.dateISO.localeCompare(a.dateISO));
-export const upcomingShows = shows.filter((s) => s.status === 'upcoming' && s.dateISO >= today());
+export const upcomingShows = shows
+  .filter((s) => s.status === 'upcoming' && s.dateISO >= today())
+  .sort((a, b) => a.dateISO.localeCompare(b.dateISO));
 
 export function stats(locale: Locale) {
   const earliest = pastShows.map((s) => s.dateISO).sort()[0];

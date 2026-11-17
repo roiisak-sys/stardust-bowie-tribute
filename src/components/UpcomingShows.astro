@@ -38,7 +38,8 @@ const {
   shows,
 } = Astro.props;
 
-const upcoming = shows.filter((s) => s.status === 'upcoming');
+// Soonest first, whatever the order of the file (which lists newest first).
+const upcoming = shows.filter((s) => s.status === 'upcoming').sort((a, b) => a.dateISO.localeCompare(b.dateISO));
 const posterSizes = await Promise.all(
   upcoming.map((s) => (s.posterImage ? imageSize(s.posterImage) : Promise.resolve({ width: 0, height: 0 })))
 );

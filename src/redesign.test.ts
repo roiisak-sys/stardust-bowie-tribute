@@ -527,9 +527,10 @@ describe('Task 7 — upcoming show as a ticket card', () => {
       expect(section).toContain(loc === 'he' ? next!.venueHe : next!.venueEn);
       expect(section).toContain(loc === 'he' ? next!.cityHe : next!.cityEn);
       const cta = section.match(/<a[^>]*class="[^"]*\bticket__cta\b[^"]*"[^>]*>[\s\S]*?<\/a>/);
-      expect(cta).not.toBeNull();
       const wantedUrl = next!.ticketUrl || next!.eventUrl;
+      // A show announced before its tickets link exists has no button yet.
       if (wantedUrl) {
+        expect(cta).not.toBeNull();
         expect(cta![0]).toContain(`href="${wantedUrl}"`);
         expect(cta![0]).toContain(next!.ticketUrl ? copy.upcomingShows.ticketsCta : copy.upcomingShows.viewEventCta);
       }
