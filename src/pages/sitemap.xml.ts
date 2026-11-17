@@ -23,9 +23,17 @@ export const GET: APIRoute = ({ site }) => {
     <xhtml:link rel="alternate" hreflang="x-default" href="${url(en)}" />
   </url>`;
 
+  // Pages that exist in Hebrew only: no hreflang alternates.
+  const hebrewOnly = ['/he/behind-the-songs/'];
+  const soloEntry = (loc: string) => `  <url>
+    <loc>${url(loc)}</loc>
+    <lastmod>${lastmod}</lastmod>
+  </url>`;
+
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 ${pairs.map(([en, he]) => [entry(en, en, he), entry(he, en, he)].join('\n')).join('\n')}
+${hebrewOnly.map(soloEntry).join('\n')}
 </urlset>
 `;
 

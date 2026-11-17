@@ -19,9 +19,11 @@ interface Props {
   /** Ready-made JSON-LD graph. Default: the home page graph. */
   structuredData?: object;
   ogType?: string;
+  /** A page with no English twin: only its own hreflang is declared (no en / x-default alternates). */
+  hebrewOnly?: boolean;
 }
 
-const { locale, title, description, pathEn = '/', pathHe = '/he/', ogType = 'website' } = Astro.props;
+const { locale, title, description, pathEn = '/', pathHe = '/he/', ogType = 'website', hebrewOnly = false } = Astro.props;
 const dir = locale === 'he' ? 'rtl' : 'ltr';
 const site = Astro.site ?? new URL('https://stardustbowie.com');
 // English is served at the bare domain (and also at /en/, which canonicalises
@@ -45,9 +47,9 @@ const structuredData = Astro.props.structuredData ?? buildStructuredData({ local
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" hreflang="en" href={englishUrl} />
+    {!hebrewOnly && <link rel="alternate" hreflang="en" href={englishUrl} />}
     <link rel="alternate" hreflang="he" href={hebrewUrl} />
-    <link rel="alternate" hreflang="x-default" href={englishUrl} />
+    {!hebrewOnly && <link rel="alternate" hreflang="x-default" href={englishUrl} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content={ogType} />

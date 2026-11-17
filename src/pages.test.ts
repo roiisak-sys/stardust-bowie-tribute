@@ -48,6 +48,8 @@ describe('content page copy', () => {
 
     it(`${l.code}: every internal link points at a real page`, () => {
       const known = new Set(slugs.map((s) => l.path(s)));
+      // Hebrew-only landing page, not part of the shared content-page set.
+      if (l.code === 'he') known.add('/he/behind-the-songs/');
       const text = JSON.stringify(l.data);
       for (const m of text.matchAll(/\]\((\/[^)\s]+)\)/g)) {
         expect(known.has(m[1]), `${l.code}: ${m[1]}`).toBe(true);

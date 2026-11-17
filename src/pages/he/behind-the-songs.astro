@@ -1,0 +1,1041 @@
+---
+// "Behind the Songs" (מאחורי השירים): a Hebrew-only landing page for the
+// story-driven version of the show, styled after its poster (black, red duotone
+// Bowie portraits, cream condensed type, the lightning bolt). The copy lives in
+// src/content/behind-the-songs.he.json; the duotone photos are made by
+// scripts/prepare-behind-the-songs-images.mjs.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BrandMark from '../../components/BrandMark.astro';
+import FloatingWhatsApp from '../../components/FloatingWhatsApp.astro';
+import SocialIcon from '../../components/SocialIcon.astro';
+import WatchVideo from '../../components/WatchVideo.astro';
+import copy from '../../content/copy.he.json';
+import members from '../../content/band-members.json';
+import t from '../../content/behind-the-songs.he.json';
+import { imageSize } from '../../lib/image-size';
+import { buildPageStructuredData } from '../../lib/structured-data';
+import { pagePath, homePath } from '../../lib/pages';
+
+const slug = t.slug;
+const site = Astro.site ?? new URL('https://stardustbowie.com');
+const waMessage = 'היי! אני רוצה לשמוע עוד על המופע "מאחורי השירים" של סטארדאסט.';
+const whatsappHref = `https://wa.me/${copy.contact.whatsappNumber}?text=${encodeURIComponent(waMessage)}`;
+const telHref = `tel:+${copy.contact.whatsappNumber}`;
+const phone = '050-9841722';
+
+const core = members.filter((m) => m.role === 'core');
+const memberSizes = await Promise.all(core.map((m) => imageSize(m.photo)));
+
+const mosaic = [
+  { src: '/assets/behind/behind-ziggy.webp', label: 'זיגי סטארדאסט', alt: 'דיוויד בואי בדמות זיגי סטארדאסט' },
+  { src: '/assets/behind/behind-aladdin-sane.webp', label: 'אלאדין סיין', alt: 'דיוויד בואי בדמות אלאדין סיין, עם הברק על הפנים' },
+  { src: '/assets/behind/behind-lets-dance.webp', label: "LET'S DANCE", alt: "דיוויד בואי בתקופת Let's Dance" },
+  { src: '/assets/behind/behind-guitar.webp', label: 'על הבמה', alt: 'דיוויד בואי עם גיטרה על הבמה' },
+];
+const mosaicSizes = await Promise.all(mosaic.map((m) => imageSize(m.src)));
+const portrait = '/assets/behind/behind-portrait.webp';
+const portraitSize = await imageSize(portrait);
+const wordmark = '/assets/behind/behind-bowie-wordmark.webp';
+const wordmarkSize = await imageSize(wordmark);
+const liveImg = '/assets/behind/behind-live.webp';
+const liveSize = await imageSize(liveImg);
+const logoSize = await imageSize('/assets/logo/stardust-logo.webp');
+
+const structuredData: any = buildPageStructuredData({
+  locale: 'he',
+  site,
+  slug,
+  page: { title: t.title, description: t.description, navLabel: t.navLabel, faq: t.faq },
+});
+for (const node of structuredData['@graph']) {
+  if (node['@type'] === 'WebPage') {
+    node.about = {
+      '@type': 'Person',
+      name: 'David Bowie',
+      alternateName: ['דיוויד בואי', 'דייויד בואי'],
+      birthDate: '1947-01-08',
+      deathDate: '2016-01-10',
+      sameAs: ['https://en.wikipedia.org/wiki/David_Bowie', 'https://www.davidbowie.com'],
+    };
+  }
+}
+---
+
+<BaseLayout
+  locale="he"
+  title={t.title}
+  description={t.description}
+  pathEn={pagePath('he', slug)}
+  pathHe={pagePath('he', slug)}
+  structuredData={structuredData}
+  hebrewOnly
+>
+  <BrandMark href={homePath('he')} />
+  <FloatingWhatsApp
+    whatsappNumber={copy.contact.whatsappNumber}
+    whatsappMessage={waMessage}
+    ariaLabel={copy.contact.whatsappCta}
+  />
+
+  <main class="bts">
+    <header class="hero has-grain">
+      <img
+        class="hero__bg"
+        src={portrait}
+        alt=""
+        width={portraitSize.width}
+        height={portraitSize.height}
+        fetchpriority="high"
+        decoding="async"
+      />
+      <div class="hero__shade" aria-hidden="true"></div>
+
+      <a class="hero__phone" href={telHref}>{t.cta.orderBy}: {phone}</a>
+
+      <div class="hero__inner">
+        <img class="hero__wordmark" src={wordmark} alt="BOWIE" width={wordmarkSize.width} height={wordmarkSize.height} decoding="async" />
+
+        <div class="hero__text">
+          <h1 class="hero__h1">
+            <span class="hero__kicker">{t.kicker}</span>
+            {t.headline.map((line) => <span class="hero__line">{line}</span>)}
+          </h1>
+
+          <p class="hero__by">
+            <span>{t.performedBy}</span>
+            <img class="hero__logo" src="/assets/logo/stardust-logo.webp" alt="STARDUST" width={logoSize.width} height={logoSize.height} decoding="async" />
+          </p>
+
+          <p class="hero__lead">{t.lead}</p>
+
+          <div class="hero__cta">
+            <a class="btn" href={whatsappHref} target="_blank" rel="noopener noreferrer">{copy.contact.whatsappCta}</a>
+            <a class="btn btn--ghost" href={telHref}>{copy.contact.callCta} · {phone}</a>
+          </div>
+        </div>
+
+        <p class="hero__badge">
+          <span class="hero__badge-num">{t.badge.number}</span>
+          <span class="hero__badge-text">{t.badge.text}</span>
+          <span class="hero__badge-note">{t.badge.note}</span>
+        </p>
+      </div>
+    </header>
+
+    <ul class="facts" aria-label="פרטי המופע">
+      {t.facts.map((f) => (
+        <li class="facts__item" data-reveal>
+          <span class="facts__big">{f.big}</span>
+          <span class="facts__small">{f.small}</span>
+        </li>
+      ))}
+    </ul>
+
+    <section class="chameleon wrap">
+      <div class="chameleon__text">
+        <p class="eyebrow" data-reveal>{t.chameleon.eyebrow}</p>
+        <h2 class="h2" data-reveal>{t.chameleon.h2}</h2>
+        {t.chameleon.body.map((p) => <p class="body" data-reveal>{p}</p>)}
+      </div>
+      <ul class="mosaic" aria-label="הדמויות של בואי">
+        {mosaic.map((m, i) => (
+          <li class="mosaic__item" data-reveal style={`--reveal-delay: ${i * 90}ms`}>
+            <img src={m.src} alt={m.alt} width={mosaicSizes[i].width} height={mosaicSizes[i].height} loading="lazy" decoding="async" />
+            <span class="mosaic__label">{m.label}</span>
+          </li>
+        ))}
+      </ul>
+      <blockquote class="pull" data-reveal>
+        <svg class="pull__bolt" viewBox="0 0 60 100" aria-hidden="true" focusable="false"><path d="M42 0 8 56h22L16 100 56 38H32z"></path></svg>
+        <p>{t.chameleon.pull}</p>
+      </blockquote>
+    </section>
+
+    <section class="protect wrap">
+      <p class="eyebrow" data-reveal>{t.protect.eyebrow}</p>
+      <h2 class="h2" data-reveal>{t.protect.h2}</h2>
+      <p class="body body--wide" data-reveal>{t.protect.intro}</p>
+      <ol class="cards">
+        {t.protect.items.map((item, i) => (
+          <li class="card" data-reveal style={`--reveal-delay: ${(i % 2) * 90}ms`}>
+            <span class="card__num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <h3 class="card__title">{item.title}</h3>
+            <p>{item.text}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="timeline wrap">
+      <p class="eyebrow" data-reveal>{t.timeline.eyebrow}</p>
+      <h2 class="h2" data-reveal>{t.timeline.h2}</h2>
+      <ol class="tl">
+        {t.timeline.items.map((item) => (
+          <li class="tl__item" data-reveal>
+            <span class="tl__years">{item.years}</span>
+            <div class="tl__body">
+              <h3 class="tl__name">{item.name}</h3>
+              <p>{item.text}</p>
+              {item.songs.length > 0 && (
+                <p class="tl__songs">
+                  <span class="tl__songs-label">{t.timeline.songsLabel}</span>
+                  {item.songs.map((s) => <span class="chip" dir="ltr">{s}</span>)}
+                </p>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="onstage wrap">
+      <div class="onstage__text">
+        <p class="eyebrow" data-reveal>{t.show.eyebrow}</p>
+        <h2 class="h2" data-reveal>{t.show.h2}</h2>
+        {t.show.body.map((p) => <p class="body" data-reveal>{p}</p>)}
+        <ul class="points" data-reveal>
+          {t.show.points.map((p) => <li>{p}</li>)}
+        </ul>
+      </div>
+      <img class="onstage__img" src={liveImg} alt="דיוויד בואי שר על הבמה" width={liveSize.width} height={liveSize.height} loading="lazy" decoding="async" data-reveal />
+    </section>
+
+    <WatchVideo heading={t.watch.heading} youtubeId="fPsdsE5sYtk" playLabel={t.watch.play} />
+
+    <section class="eighty wrap">
+      <p class="eighty__num" aria-hidden="true">80</p>
+      <div>
+        <h2 class="h2" data-reveal>{t.eighty.h2}</h2>
+        <p class="body" data-reveal>{t.eighty.text}</p>
+      </div>
+    </section>
+
+    <section class="members wrap">
+      <h2 class="h2" data-reveal>{t.members.h2}</h2>
+      <ul class="members__grid">
+        {core.map((m, i) => (
+          <li class="member" data-reveal style={`--reveal-delay: ${(i % 3) * 80}ms`}>
+            <img src={m.photo} alt={`${m.nameHe}, ${m.instrumentHe}`} width={memberSizes[i].width} height={memberSizes[i].height} loading="lazy" decoding="async" />
+            <span class="member__name">{m.nameHe}</span>
+            <span class="member__role">{m.instrumentHe}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="members__more"><a href={pagePath('he', 'about')}>{t.members.more}</a></p>
+    </section>
+
+    <section class="faq wrap">
+      <h2 class="h2" data-reveal>שאלות ותשובות</h2>
+      {t.faq.map((f) => (
+        <div class="qa" data-reveal>
+          <h3>{f.q}</h3>
+          <p>{f.a}</p>
+        </div>
+      ))}
+    </section>
+
+    <section class="final has-grain">
+      <svg class="final__bolt" viewBox="0 0 60 100" aria-hidden="true" focusable="false"><path d="M42 0 8 56h22L16 100 56 38H32z"></path></svg>
+      <h2 class="final__h2" data-reveal>{t.cta.h2}</h2>
+      <p class="final__text" data-reveal>{t.cta.text}</p>
+      <p class="final__phone" data-reveal><a href={telHref}>{phone}</a></p>
+      <div class="hero__cta final__cta" data-reveal>
+        <a class="btn" href={whatsappHref} target="_blank" rel="noopener noreferrer">{copy.contact.whatsappCta}</a>
+        <a class="btn btn--ghost" href={telHref}>{copy.contact.callCta}</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bts-footer">
+    <div class="bts-footer__social">
+      <a href={copy.contact.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><SocialIcon name="instagram" size={28} /></a>
+      <a href={copy.contact.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><SocialIcon name="facebook" size={28} /></a>
+    </div>
+    <nav class="bts-footer__links" aria-label="עוד באתר">
+      <a href={homePath('he')}>{t.links.back}</a>
+      <a href={pagePath('he', 'show')}>{t.links.show}</a>
+      <a href={pagePath('he', 'david-bowie')}>{t.links.bowie}</a>
+    </nav>
+    <p>{copy.contact.copyright}</p>
+  </footer>
+</BaseLayout>
+
+<style>
+  .bts {
+    --red: #ff3a1d;
+    --red-deep: #8f1608;
+    --cream: #f8ecd9;
+    --ink: #0a0a0a;
+    --panel: #140f0e;
+    --line: rgba(248, 236, 217, 0.16);
+    --display: 'Assistant', var(--font-display), system-ui, sans-serif;
+    color: var(--cream);
+    background: var(--ink);
+    overflow-x: clip;
+  }
+
+  .wrap {
+    max-width: 62rem;
+    margin-inline: auto;
+    padding: var(--space-xl) var(--space-sm) 0;
+  }
+
+  /* ---------- shared type ---------- */
+  .eyebrow {
+    margin: 0 0 var(--space-xs);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    color: var(--red);
+  }
+
+  .h2 {
+    margin: 0 0 var(--space-sm);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2rem, 6.2vw, 3.8rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .body {
+    margin: 0 0 var(--space-sm);
+    font-size: clamp(1.08rem, 1.5vw, 1.25rem);
+    line-height: 1.75;
+    opacity: 0.92;
+    max-width: 38rem;
+  }
+
+  .body--wide {
+    max-width: 46rem;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.95rem 1.7rem;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.1rem;
+    text-decoration: none;
+    color: var(--cream);
+    background: var(--red);
+    border: 2px solid var(--red);
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+  }
+
+  .btn:hover,
+  .btn:focus-visible {
+    background: var(--cream);
+    border-color: var(--cream);
+    color: var(--ink);
+  }
+
+  .btn--ghost {
+    background: transparent;
+    border-color: var(--cream);
+  }
+
+  .btn--ghost:hover,
+  .btn--ghost:focus-visible {
+    background: var(--cream);
+    color: var(--ink);
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 12%;
+  }
+
+  .hero__shade {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(to top, var(--ink) 0%, rgba(10, 10, 10, 0.88) 38%, rgba(10, 10, 10, 0.1) 72%),
+      linear-gradient(to bottom, rgba(10, 10, 10, 0.6), transparent 22%);
+  }
+
+  .hero__phone {
+    position: absolute;
+    top: var(--space-sm);
+    inset-inline-end: var(--space-sm);
+    z-index: 2;
+    padding: 0.55rem 0.4rem;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: 0.03em;
+    color: var(--cream);
+    text-decoration: none;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  }
+
+  .hero__inner {
+    position: relative;
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding: 4.5rem var(--space-sm) var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  .hero__wordmark {
+    align-self: center;
+    width: min(38vw, 14rem);
+    height: auto;
+    filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.55));
+    animation: bts-flicker 6s steps(1) infinite;
+  }
+
+  .hero__text {
+    max-width: 40rem;
+  }
+
+  .hero__h1 {
+    margin: 0 0 var(--space-sm);
+    font-family: var(--display);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    text-shadow: 0 4px 28px rgba(0, 0, 0, 0.7);
+  }
+
+  .hero__kicker {
+    display: block;
+    margin-bottom: var(--space-xs);
+    padding-inline-start: 0.6rem;
+    border-inline-start: 3px solid var(--red);
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    color: var(--cream);
+  }
+
+  .hero__line {
+    display: block;
+    font-size: clamp(2.7rem, 13.5vw, 6.2rem);
+  }
+
+  .hero__by {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin: 0 0 var(--space-sm);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.3rem, 4vw, 1.9rem);
+  }
+
+  .hero__logo {
+    width: clamp(9rem, 34vw, 14rem);
+    height: auto;
+  }
+
+  .hero__lead {
+    margin: 0 0 var(--space-md);
+    font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+    line-height: 1.7;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
+  }
+
+  .hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .hero__badge {
+    position: absolute;
+    top: 4.4rem;
+    inset-inline-end: var(--space-sm);
+    margin: 0;
+    display: grid;
+    justify-items: center;
+    width: 5.6rem;
+    padding: 0.7rem 0.4rem 0.6rem;
+    text-align: center;
+    background: var(--red);
+    color: var(--cream);
+    transform: rotate(-6deg);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+  }
+
+  .hero__badge-num {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 2.3rem;
+    line-height: 0.9;
+  }
+
+  .hero__badge-text {
+    font-weight: 800;
+    font-size: 0.85rem;
+    line-height: 1.1;
+  }
+
+  .hero__badge-note {
+    margin-top: 0.3rem;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    opacity: 0.9;
+  }
+
+  @keyframes bts-flicker {
+    0%, 92%, 96%, 100% { opacity: 1; }
+    94%, 98% { opacity: 0.82; }
+  }
+
+  /* ---------- facts strip ---------- */
+  .facts {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    border-block: 2px solid var(--red);
+    background: var(--panel);
+  }
+
+  .facts__item {
+    display: grid;
+    gap: 0.2rem;
+    padding: var(--space-sm);
+    text-align: center;
+    border-inline-end: 1px solid var(--line);
+    border-block-end: 1px solid var(--line);
+  }
+
+  .facts__big {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.7rem, 5.5vw, 2.7rem);
+    line-height: 1;
+    color: var(--cream);
+  }
+
+  .facts__small {
+    font-size: 0.95rem;
+    opacity: 0.75;
+  }
+
+  /* ---------- chameleon ---------- */
+  .chameleon {
+    display: grid;
+    gap: var(--space-md);
+  }
+
+  .mosaic {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+
+  .mosaic__item {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background: var(--panel);
+  }
+
+  .mosaic__item:nth-child(even) {
+    translate: 0 1.2rem;
+  }
+
+  .mosaic__item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 15%;
+    display: block;
+  }
+
+  .mosaic__label {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    padding: 1.4rem 0.7rem 0.5rem;
+    font-weight: 800;
+    font-size: 0.95rem;
+    background: linear-gradient(to top, rgba(10, 10, 10, 0.92), transparent);
+  }
+
+  .pull {
+    position: relative;
+    margin: var(--space-md) 0 0;
+    padding: var(--space-sm) 0;
+    padding-inline-start: 3.6rem;
+    border-block: 1px solid var(--line);
+  }
+
+  .pull p {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.5rem, 4.4vw, 2.4rem);
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  .pull__bolt {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 0;
+    width: 2.3rem;
+    translate: 0 -50%;
+    fill: var(--red);
+  }
+
+  /* ---------- protect ---------- */
+  .cards {
+    list-style: none;
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-sm);
+  }
+
+  .card {
+    position: relative;
+    padding: var(--space-md) var(--space-sm) var(--space-sm);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-block-start: 3px solid var(--red);
+  }
+
+  .card__num {
+    position: absolute;
+    top: 0.5rem;
+    inset-inline-end: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--red);
+  }
+
+  .card__title {
+    margin: 0 0 var(--space-xs);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.5rem;
+    line-height: 1.1;
+  }
+
+  .card p {
+    margin: 0;
+    line-height: 1.7;
+    opacity: 0.9;
+  }
+
+  /* ---------- timeline ---------- */
+  .tl {
+    list-style: none;
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    position: relative;
+  }
+
+  .tl::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.5rem;
+    inset-inline-start: 0.45rem;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--red), var(--red-deep) 70%, transparent);
+  }
+
+  .tl__item {
+    position: relative;
+    padding-inline-start: 2rem;
+    padding-bottom: var(--space-md);
+  }
+
+  .tl__item::before {
+    content: '';
+    position: absolute;
+    top: 0.55rem;
+    inset-inline-start: 0;
+    width: 1rem;
+    height: 1rem;
+    background: var(--red);
+    clip-path: polygon(60% 0, 10% 58%, 45% 58%, 30% 100%, 92% 38%, 55% 38%);
+    transform: scale(1.15);
+  }
+
+  .tl__years {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    color: var(--red);
+  }
+
+  .tl__name {
+    margin: 0.1rem 0 0.35rem;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(1.6rem, 4.6vw, 2.3rem);
+    line-height: 1.05;
+  }
+
+  .tl__body p {
+    margin: 0 0 0.6rem;
+    max-width: 38rem;
+    line-height: 1.7;
+    opacity: 0.92;
+  }
+
+  .tl__songs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .tl__songs-label {
+    font-size: 0.9rem;
+    opacity: 0.7;
+    margin-inline-end: 0.2rem;
+  }
+
+  .chip {
+    padding: 0.15rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    border: 1px solid var(--red);
+    border-radius: 999px;
+    unicode-bidi: isolate;
+  }
+
+  /* ---------- on stage ---------- */
+  .onstage {
+    display: grid;
+    gap: var(--space-md);
+    align-items: center;
+  }
+
+  .onstage__img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--line);
+    box-shadow: 0.7rem 0.7rem 0 var(--red-deep);
+  }
+
+  .points {
+    margin: var(--space-sm) 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .points li {
+    position: relative;
+    padding-inline-start: 1.6rem;
+    line-height: 1.65;
+  }
+
+  .points li::before {
+    content: '';
+    position: absolute;
+    top: 0.35rem;
+    inset-inline-start: 0;
+    width: 0.9rem;
+    height: 0.9rem;
+    background: var(--red);
+    clip-path: polygon(60% 0, 10% 58%, 45% 58%, 30% 100%, 92% 38%, 55% 38%);
+  }
+
+  /* ---------- eighty ---------- */
+  .eighty {
+    display: grid;
+    gap: var(--space-sm);
+    align-items: center;
+    padding-top: var(--space-xl);
+  }
+
+  .eighty__num {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(7rem, 34vw, 15rem);
+    line-height: 0.8;
+    letter-spacing: -0.06em;
+    color: transparent;
+    -webkit-text-stroke: 3px var(--red);
+    text-shadow: 0.05em 0.05em 0 var(--red-deep);
+  }
+
+  /* ---------- members ---------- */
+  .members__grid {
+    list-style: none;
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+  }
+
+  .member {
+    display: grid;
+    gap: 0.1rem;
+  }
+
+  .member img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+    filter: grayscale(0.25) contrast(1.05);
+    border: 1px solid var(--line);
+  }
+
+  .member__name {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.15rem;
+  }
+
+  .member__role {
+    font-size: 0.9rem;
+    opacity: 0.75;
+  }
+
+  .members__more {
+    margin: var(--space-sm) 0 0;
+  }
+
+  .members__more a,
+  .faq a {
+    color: var(--red);
+    text-underline-offset: 0.2em;
+  }
+
+  /* ---------- faq ---------- */
+  .qa {
+    padding: var(--space-sm) 0;
+    border-block-end: 1px solid var(--line);
+    max-width: 46rem;
+  }
+
+  .qa h3 {
+    margin: 0 0 0.35rem;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.3rem;
+    line-height: 1.25;
+  }
+
+  .qa p {
+    margin: 0;
+    line-height: 1.7;
+    opacity: 0.9;
+  }
+
+  /* ---------- closing call ---------- */
+  .final {
+    position: relative;
+    margin-top: var(--space-xl);
+    padding: var(--space-xl) var(--space-sm);
+    text-align: center;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255, 58, 29, 0.28), transparent 65%),
+      var(--panel);
+    border-block-start: 2px solid var(--red);
+    overflow: hidden;
+  }
+
+  .final__bolt {
+    width: 2.6rem;
+    margin: 0 auto var(--space-sm);
+    display: block;
+    fill: var(--red);
+  }
+
+  .final__h2 {
+    margin: 0 0 var(--space-sm);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2.2rem, 8vw, 4.6rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .final__text {
+    max-width: 34rem;
+    margin: 0 auto var(--space-sm);
+    line-height: 1.7;
+    opacity: 0.92;
+  }
+
+  .final__phone {
+    margin: 0 0 var(--space-md);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(2rem, 7vw, 3.4rem);
+    letter-spacing: 0.02em;
+    direction: ltr;
+  }
+
+  .final__phone a {
+    color: var(--cream);
+    text-decoration: none;
+  }
+
+  .final__cta {
+    justify-content: center;
+  }
+
+  /* ---------- footer ---------- */
+  .bts-footer {
+    padding: var(--space-md) var(--space-sm) calc(var(--space-xl) + 2rem);
+    text-align: center;
+    font-size: 0.9rem;
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  .bts-footer__social {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .bts-footer__social a {
+    color: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .bts-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+
+  .bts-footer__links a {
+    color: var(--cream);
+    padding: 0.5rem 0.2rem;
+    opacity: 0.85;
+  }
+
+  /* ---------- wider screens ---------- */
+  @media (min-width: 700px) {
+    .facts {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .facts__item {
+      padding: var(--space-md) var(--space-sm);
+    }
+
+    .chameleon {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+
+    .chameleon__text {
+      padding-top: var(--space-sm);
+    }
+
+    .pull {
+      grid-column: 1 / -1;
+    }
+
+    .cards {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .onstage {
+      grid-template-columns: 1.2fr 1fr;
+    }
+
+    .eighty {
+      grid-template-columns: auto 1fr;
+      gap: var(--space-lg);
+    }
+
+    .members__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .hero__badge {
+      width: 8rem;
+      top: 5.4rem;
+    }
+
+    .hero__badge-num {
+      font-size: 3.4rem;
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .hero {
+      min-height: max(100svh, 50rem);
+    }
+
+    .hero__bg {
+      object-position: 30% 18%;
+    }
+
+    .hero__shade {
+      background:
+        linear-gradient(to left, var(--ink) 4%, rgba(10, 10, 10, 0.8) 34%, rgba(10, 10, 10, 0.05) 68%),
+        linear-gradient(to top, var(--ink) 0%, transparent 35%),
+        linear-gradient(to bottom, rgba(10, 10, 10, 0.55), transparent 22%);
+    }
+
+    .hero__inner {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: flex-start;
+      padding-bottom: var(--space-xl);
+    }
+
+    .hero__wordmark {
+      position: absolute;
+      top: 4.2rem;
+      left: 28%;
+      translate: -50% 0;
+      width: 17rem;
+    }
+
+    .hero__badge {
+      top: 5.6rem;
+      inset-inline-end: var(--space-sm);
+    }
+
+    .members__grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+</style>
