@@ -12,37 +12,61 @@ interface Props {
   heading: string;
   youtubeId: string;
   playLabel: string;
+  // Optional second video that leads the section: a self-hosted clip shown
+  // next to the YouTube showreel. Nothing of it loads until it is played.
+  clip?: { src: string; poster: string; caption: string; showreelCaption: string };
 }
-const { heading, youtubeId, playLabel } = Astro.props;
+const { heading, youtubeId, playLabel, clip } = Astro.props;
 
 const title = 'Stardust, David Bowie Tribute Show';
 const allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
 const poster = '/assets/video/showreel-poster.webp';
 const { width, height } = await imageSize(poster);
 const watchUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
+const clipSize = clip ? await imageSize(clip.poster) : { width: 0, height: 0 };
 ---
 
 <section id="watch" class="watch has-grain">
   <h2 class="watch__heading" data-reveal>{heading}</h2>
-  <div
-    class="watch__frame"
-    data-reveal
-    style="--reveal-delay: 120ms"
-    data-video-id={youtubeId}
-    data-video-title={title}
-    data-video-allow={allow}
-  >
-    <img class="watch__poster" src={poster} width={width} height={height} alt="" loading="lazy" decoding="async" />
-    <a class="watch__facade watch__facade--link" href={watchUrl} target="_blank" rel="noopener noreferrer" aria-label={`${playLabel}: ${title}`}>
-      <span class="watch__play" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" focusable="false"><path d="M8 5.5v13l11-6.5z"></path></svg>
-      </span>
-    </a>
-    <button class="watch__facade watch__facade--button" type="button" aria-label={`${playLabel}: ${title}`}>
-      <span class="watch__play" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" focusable="false"><path d="M8 5.5v13l11-6.5z"></path></svg>
-      </span>
-    </button>
+  <div class:list={['watch__grid', { 'watch__grid--two': clip }]}>
+    {clip && (
+      <figure class="watch__item" data-reveal>
+        <video
+          class="watch__clip"
+          controls
+          playsinline
+          preload="none"
+          src={clip.src}
+          poster={clip.poster}
+          width={clipSize.width}
+          height={clipSize.height}
+          aria-label={clip.caption}></video>
+        <figcaption class="watch__caption">{clip.caption}</figcaption>
+      </figure>
+    )}
+    <div class="watch__item">
+      <div
+        class="watch__frame"
+        data-reveal
+        style="--reveal-delay: 120ms"
+        data-video-id={youtubeId}
+        data-video-title={title}
+        data-video-allow={allow}
+      >
+        <img class="watch__poster" src={poster} width={width} height={height} alt="" loading="lazy" decoding="async" />
+        <a class="watch__facade watch__facade--link" href={watchUrl} target="_blank" rel="noopener noreferrer" aria-label={`${playLabel}: ${title}`}>
+          <span class="watch__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" focusable="false"><path d="M8 5.5v13l11-6.5z"></path></svg>
+          </span>
+        </a>
+        <button class="watch__facade watch__facade--button" type="button" aria-label={`${playLabel}: ${title}`}>
+          <span class="watch__play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" focusable="false"><path d="M8 5.5v13l11-6.5z"></path></svg>
+          </span>
+        </button>
+      </div>
+      {clip && <p class="watch__caption">{clip.showreelCaption}</p>}
+    </div>
   </div>
 </section>
 
@@ -87,6 +111,51 @@ const watchUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
     font-size: var(--size-display-md);
     text-align: center;
     margin-block: 0 var(--space-lg);
+  }
+
+  .watch__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-lg) var(--space-md);
+    max-inline-size: 56rem;
+    margin-inline: auto;
+  }
+
+  .watch__grid--two {
+    max-inline-size: 76rem;
+  }
+
+  @media (min-width: 900px) {
+    .watch__grid--two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .watch__item {
+    margin: 0;
+    min-inline-size: 0;
+  }
+
+  .watch__grid--two .watch__frame {
+    max-inline-size: none;
+  }
+
+  .watch__clip {
+    display: block;
+    inline-size: 100%;
+    block-size: auto;
+    aspect-ratio: 16 / 9;
+    background: var(--color-charcoal);
+  }
+
+  .watch__caption {
+    margin-block-start: var(--space-xs);
+    font-family: var(--font-mono);
+    font-size: var(--size-label);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: center;
+    opacity: 0.75;
   }
 
   .watch__frame {

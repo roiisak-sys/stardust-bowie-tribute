@@ -73,7 +73,12 @@ const whatsappHref = `https://wa.me/${copy.contact.whatsappNumber}?text=${encode
       paragraph={copy.bowieStory.paragraph}
       pullQuote={copy.bowieStory.pullQuote}
     />
-    <WatchVideo heading={copy.watch.heading} youtubeId="fPsdsE5sYtk" playLabel={copy.ui.playShowreel} />
+    <WatchVideo
+      heading={copy.watch.heading}
+      youtubeId="fPsdsE5sYtk"
+      playLabel={copy.ui.playShowreel}
+      clip={{ src: '/assets/video/london-festival.mp4', poster: '/assets/video/london-festival-poster.webp', caption: copy.watch.londonCaption, showreelCaption: copy.watch.showreelCaption }}
+    />
     <UpcomingShows
       locale="en"
       heading={copy.upcomingShows.heading}

@@ -1290,6 +1290,18 @@ describe('Task 10b — click-to-load video facade', () => {
         expect(watch).not.toContain('<iframe');
       });
 
+      it('leads with the self-hosted London clip, which loads nothing until it is played', () => {
+        const video = watch.match(/<video[^>]*>/)![0];
+        expect(video).toContain('controls');
+        expect(video).toContain('preload="none"');
+        expect(video).toContain('src="/assets/video/london-festival.mp4"');
+        expect(video).toContain('poster="/assets/video/london-festival-poster.webp"');
+        expect(video).toMatch(/aria-label="[^"]+"/);
+        expect(watch.indexOf('<video')).toBeLessThan(watch.indexOf('watch__frame'));
+        expect(existsSync(join(DIST, 'assets/video/london-festival.mp4'))).toBe(true);
+        expect(existsSync(join(DIST, 'assets/video/london-festival-poster.webp'))).toBe(true);
+      });
+
       it('keeps the #watch section, its heading and the aspect-ratio frame with reveal', () => {
         expect(html).toMatch(/<section[^>]*id="watch"/);
         expect(watch).toMatch(/<h2[^>]*class="watch__heading"/);
